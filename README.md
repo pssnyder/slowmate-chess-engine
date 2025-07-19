@@ -13,19 +13,19 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🚧 **Project Initialization Phase** 🚧
+🎯 **Phase 1 Complete - Basic Engine Functional!** 🎯
 
-The engine is currently in the initial setup phase. No chess functionality has been implemented yet.
+The engine successfully plays complete chess games using random move selection.
 
 ### Completed Features
-- [ ] Project structure and documentation setup
-- [ ] Basic chess board representation
-- [ ] Move generation
-- [ ] Legal move validation
-- [ ] Game state management
-- [ ] Basic move evaluation
-- [ ] UCI protocol implementation
-- [ ] Basic search algorithm
+- ✅ Project structure and documentation setup
+- ✅ Basic chess board representation (via python-chess)
+- ✅ Move generation (20 legal moves from starting position)
+- ✅ Legal move validation (automatic via python-chess)
+- ✅ Game state management (checkmate, stalemate, draw detection)
+- ⏳ Basic move evaluation (Phase 2 - search algorithms)
+- ⏳ UCI protocol implementation (Phase 2 - interface)
+- ⏳ Basic search algorithm (Phase 2 - minimax/alpha-beta)
 
 ## Core Goals
 
@@ -46,11 +46,55 @@ The engine is currently in the initial setup phase. No chess functionality has b
 
 ## Installation
 
-*To be documented once first working version is complete*
+1. Clone the repository:
+```bash
+git clone https://github.com/pssnyder/slowmate_chess_engine.git
+cd slowmate_chess_engine
+```
+
+2. Create and activate virtual environment:
+```bash
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
 ## Usage
 
-*To be documented with examples once basic functionality is implemented*
+### Basic Demo
+Run a complete random game:
+```bash
+python demo.py
+```
+
+### Engine API
+```python
+from slowmate.engine import SlowMateEngine
+
+# Create new engine
+engine = SlowMateEngine()
+
+# Play random moves
+while not engine.is_game_over():
+    move = engine.play_random_move()
+    print(f"Engine played: {move}")
+    print(f"Status: {engine.get_game_status()}")
+
+print(f"Game over: {engine.get_game_result()}")
+```
+
+### Current Features
+- **Random Move Selection**: Selects legal moves randomly
+- **Complete Game Support**: Plays from start to checkmate/stalemate/draw
+- **Real-time Transparency**: Shows legal move count and game status
+- **Robust Game Logic**: Handles all chess rules via python-chess library
 
 ## Development Roadmap
 
@@ -74,6 +118,6 @@ This is primarily a learning project, but suggestions and educational discussion
 
 ---
 
-**Last Updated**: July 18, 2025
-**Version**: 0.0.1-dev
-**Next Steps**: See `/docs/01_initial_setup.md` for current development focus
+**Last Updated**: July 19, 2025
+**Version**: 0.0.1-dev (Phase 1 Complete)
+**Next Steps**: See `/docs/04_uci_interface.md` for Phase 2 planning

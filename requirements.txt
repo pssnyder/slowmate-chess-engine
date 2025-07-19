@@ -1,0 +1,9 @@
+# SlowMate Chess Engine - Requirements
+
+# Core chess functionality
+python-chess>=1.11.0
+
+# Future dependencies will be added as needed:
+# - Testing: pytest (when we add unit tests)
+# - Performance profiling: cProfile (built-in, for optimization phase)
+# - UCI interface: asyncio (built-in, for protocol handling)
