@@ -281,6 +281,12 @@ class UCIInterface:
             if selected_move is None:
                 print("bestmove (none)", flush=True)
             else:
+                # Get evaluation score for UCI
+                move_score = self.engine.intelligence._evaluate_move(selected_move)
+                
+                # Send evaluation information (UCI standard)
+                print(f"info depth 1 score cp {move_score}", flush=True)
+                
                 # Get move analysis for UCI info
                 if self.debug:
                     reasoning = self.engine.intelligence.get_selection_reasoning(legal_moves, selected_move)

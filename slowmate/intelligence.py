@@ -2,13 +2,14 @@
 SlowMate Chess Engine - Move Selection Intelligence
 
 This module contains intelligent move selection logic that goes beyond random selection.
-Current implementation includes critical game state handling for checkmate, stalemate, and draws.
+Current implementation includes critical game state handling for checkmate, stalemate, and draws,
+plus position evaluation based on material count and piece values.
 
 Architecture: Modular move filters that can be easily extended with additional intelligence.
 """
 
 import random
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 import chess
 from slowmate.engine import SlowMateEngine
 
@@ -19,9 +20,20 @@ class MoveIntelligence:
     
     Provides layered move filtering and selection logic:
     1. Critical game state handling (checkmate, stalemate, draws)
-    2. Future: Opening book, tactical patterns, positional evaluation
-    3. Fallback: Random selection from remaining legal moves
+    2. Position evaluation (material count and piece values)
+    3. Future: Opening book, tactical patterns, positional evaluation
+    4. Fallback: Random selection from remaining legal moves
     """
+    
+    # Standard piece values in centipawns (UCI standard)
+    PIECE_VALUES = {
+        chess.PAWN: 100,
+        chess.KNIGHT: 320,
+        chess.BISHOP: 330,    # Slightly higher than knight as requested
+        chess.ROOK: 500,
+        chess.QUEEN: 900,
+        chess.KING: 0         # King safety handled separately
+    }
     
     def __init__(self, engine: SlowMateEngine):
         """
@@ -53,14 +65,13 @@ class MoveIntelligence:
         # Phase 2: Filter out losing/drawing moves
         filtered_moves = self._filter_bad_moves(legal_moves)
         
-        # Phase 3: Select from remaining moves
+        # Phase 3: If we have good moves, evaluate them for best material gain
         if filtered_moves:
-            # We have good moves available
-            return random.choice(filtered_moves)
+            return self._select_best_evaluated_move(filtered_moves)
         else:
             # All moves lead to stalemate/draw - we're forced to play one
-            # This is a critical edge case handling
-            return random.choice(legal_moves)
+            # Even in this case, try to pick the least bad one
+            return self._select_best_evaluated_move(legal_moves)
     
     def _find_checkmate_moves(self, legal_moves: List[chess.Move]) -> List[chess.Move]:
         """
@@ -120,6 +131,119 @@ class MoveIntelligence:
         
         return good_moves
     
+    def _select_best_evaluated_move(self, moves: List[chess.Move]) -> Optional[chess.Move]:
+        """
+        Select the best move from candidates based on position evaluation.
+        
+        Args:
+            moves: List of candidate moves to evaluate
+            
+        Returns:
+            The move with the best evaluation score, or None if no moves available
+        """
+        if not moves:
+            # This should never happen, but return None as fallback
+            return None
+        
+        best_moves = []
+        best_score = float('-inf')
+        
+        for move in moves:
+            # Evaluate the position after this move
+            score = self._evaluate_move(move)
+            
+            if score > best_score:
+                best_score = score
+                best_moves = [move]
+            elif score == best_score:
+                best_moves.append(move)
+        
+        # If multiple moves have the same best score, pick randomly
+        return random.choice(best_moves)
+    
+    def _evaluate_move(self, move: chess.Move) -> int:
+        """
+        Evaluate a move and return its score in centipawns.
+        
+        Args:
+            move: The move to evaluate
+            
+        Returns:
+            Evaluation score in centipawns (positive = good for current player)
+        """
+        # Store whose turn it is before making the move
+        current_player = self.engine.board.turn
+        
+        # Make the move temporarily
+        self.engine.board.push(move)
+        
+        # Calculate position evaluation from the original player's perspective
+        white_material = self._calculate_material(chess.WHITE)
+        black_material = self._calculate_material(chess.BLACK)
+        
+        if current_player == chess.WHITE:
+            score = white_material - black_material
+        else:
+            score = black_material - white_material
+        
+        # Undo the move
+        self.engine.board.pop()
+        
+        return score
+    
+    def _evaluate_position(self) -> int:
+        """
+        Evaluate the current position and return score in centipawns.
+        
+        Returns:
+            Evaluation score from current player's perspective
+        """
+        # Simple material evaluation
+        white_material = self._calculate_material(chess.WHITE)
+        black_material = self._calculate_material(chess.BLACK)
+        
+        # Return score from current player's perspective
+        if self.engine.board.turn == chess.WHITE:
+            return white_material - black_material
+        else:
+            return black_material - white_material
+    
+    def _calculate_material(self, color: chess.Color) -> int:
+        """
+        Calculate total material value for a given color.
+        
+        Args:
+            color: The color to calculate material for
+            
+        Returns:
+            Total material value in centipawns
+        """
+        total = 0
+        
+        for piece_type in [chess.PAWN, chess.KNIGHT, chess.BISHOP, 
+                          chess.ROOK, chess.QUEEN]:
+            piece_count = len(self.engine.board.pieces(piece_type, color))
+            total += piece_count * self.PIECE_VALUES[piece_type]
+        
+        return total
+    
+    def get_position_evaluation(self) -> Dict[str, int]:
+        """
+        Get detailed evaluation of the current position.
+        
+        Returns:
+            Dictionary with evaluation details
+        """
+        white_material = self._calculate_material(chess.WHITE)
+        black_material = self._calculate_material(chess.BLACK)
+        
+        return {
+            'white_material': white_material,
+            'black_material': black_material,
+            'material_difference': white_material - black_material,
+            'current_player_advantage': self._evaluate_position()
+        }
+    
     def get_move_analysis(self, move: chess.Move) -> dict:
         """
         Analyze a specific move and return detailed information.
@@ -169,6 +293,7 @@ class MoveIntelligence:
         """
         # Analyze the selected move
         move_analysis = self.get_move_analysis(selected_move)
+        move_score = self._evaluate_move(selected_move)
         
         # Check what type of move this was
         checkmate_moves = self._find_checkmate_moves(legal_moves)
@@ -178,17 +303,17 @@ class MoveIntelligence:
             return f"CHECKMATE MOVE: Selected {move_analysis['san']} to deliver checkmate!"
         
         elif len(filtered_moves) == 0:
-            return f"FORCED MOVE: Selected {move_analysis['san']} - all moves lead to stalemate/draw"
+            return f"FORCED MOVE: Selected {move_analysis['san']} (score: {move_score:+d}) - all moves lead to stalemate/draw"
         
         elif selected_move in filtered_moves:
             bad_moves_count = len(legal_moves) - len(filtered_moves)
             if bad_moves_count > 0:
-                return f"SAFE MOVE: Selected {move_analysis['san']} (avoided {bad_moves_count} stalemate/draw moves)"
+                return f"EVALUATED MOVE: Selected {move_analysis['san']} (score: {move_score:+d}) - avoided {bad_moves_count} stalemate/draw moves"
             else:
-                return f"RANDOM SELECTION: Selected {move_analysis['san']} from {len(legal_moves)} good moves"
+                return f"BEST EVALUATION: Selected {move_analysis['san']} (score: {move_score:+d}) from {len(legal_moves)} moves"
         
         else:
-            return f"FALLBACK MOVE: Selected {move_analysis['san']} (unexpected selection path)"
+            return f"FALLBACK MOVE: Selected {move_analysis['san']} (score: {move_score:+d}) - unexpected selection path"
 
 
 class IntelligentSlowMateEngine(SlowMateEngine):
@@ -211,8 +336,12 @@ class IntelligentSlowMateEngine(SlowMateEngine):
             'avoided_stalemates': 0,
             'avoided_draws': 0,
             'forced_moves': 0,
+            'evaluated_moves': 0,
             'random_moves': 0
         }
+        
+        # Evaluation tracking
+        self.evaluation_history = []
     
     def select_move(self) -> Optional[chess.Move]:
         """
@@ -247,17 +376,29 @@ class IntelligentSlowMateEngine(SlowMateEngine):
         # Get reasoning before making the move
         reasoning = self.intelligence.get_selection_reasoning(legal_moves, move)
         
+        # Get evaluation score
+        move_score = self.intelligence._evaluate_move(move)
+        
         # Convert to algebraic notation before making the move
         move_notation = self.board.san(move)
         
         # Make the move
         self.make_move(move)
         
-        # Update statistics (simplified for now)
+        # Store evaluation history
+        self.evaluation_history.append({
+            'move': move_notation,
+            'score': move_score,
+            'reasoning': reasoning
+        })
+        
+        # Update statistics
         if "CHECKMATE" in reasoning:
             self.move_stats['checkmate_moves'] += 1
         elif "FORCED" in reasoning:
             self.move_stats['forced_moves'] += 1
+        elif "EVALUATED" in reasoning or "BEST EVALUATION" in reasoning:
+            self.move_stats['evaluated_moves'] += 1
         elif "SAFE" in reasoning and "avoided" in reasoning:
             if "stalemate" in reasoning:
                 self.move_stats['avoided_stalemates'] += 1
@@ -285,7 +426,26 @@ class IntelligentSlowMateEngine(SlowMateEngine):
                 f"{self.move_stats['avoided_stalemates']} stalemates avoided, "
                 f"{self.move_stats['avoided_draws']} draws avoided, "
                 f"{self.move_stats['forced_moves']} forced moves, "
+                f"{self.move_stats['evaluated_moves']} evaluated moves, "
                 f"{self.move_stats['random_moves']} random moves")
+    
+    def get_current_evaluation(self) -> int:
+        """
+        Get the evaluation of the current position in centipawns.
+        
+        Returns:
+            Current position evaluation from current player's perspective
+        """
+        return self.intelligence._evaluate_position()
+    
+    def get_evaluation_details(self) -> Dict[str, int]:
+        """
+        Get detailed evaluation information for the current position.
+        
+        Returns:
+            Dictionary with detailed evaluation breakdown
+        """
+        return self.intelligence.get_position_evaluation()
     
     def toggle_intelligence(self, enabled: Optional[bool] = None) -> bool:
         """
