@@ -13,9 +13,9 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🏆 **INTELLIGENT ENGINE - Strategic Decision Making!** 🏆
+🏆 **EVALUATION-BASED ENGINE - Material Intelligence Achieved!** 🏆
 
-The engine now features intelligent move selection with checkmate detection, stalemate avoidance, and strategic game state recognition!
+The engine now features sophisticated position evaluation with material-based move selection, building upon the intelligent game state recognition!
 
 ### Completed Features
 - ✅ Project structure and documentation setup
@@ -26,8 +26,17 @@ The engine now features intelligent move selection with checkmate detection, sta
 - ✅ **UCI protocol implementation (Full compatibility!)**
 - ✅ **Nibbler.exe integration (Production validated!)**
 - ✅ **Intelligent move selection (Checkmate detection, stalemate avoidance!)**
-- ⏳ Advanced search algorithms (Phase 3 - minimax/alpha-beta)
-- ⏳ Position evaluation functions (Phase 3 - tactical/positional assessment)
+- ✅ **🆕 Material evaluation system (Strategic piece value assessment!)**
+- ✅ **🆕 Score-based move selection (Prioritizes valuable captures!)**
+- ⏳ Positional evaluation (Phase 3 - next: piece positioning, king safety)
+- ⏳ Advanced search algorithms (Phase 4 - minimax/alpha-beta)
+
+### Latest Milestone: Material Evaluation System
+- **4-tier decision system**: Checkmate → Safety → Material evaluation → Fallback
+- **Standard piece values**: Queen=900, Rook=500, Bishop=330, Knight=320, Pawn=100 (centipawns)
+- **UCI evaluation output**: `info depth 1 score cp [score]` for GUI integration
+- **Real-world validation**: Successfully tested in Nibbler, reaches decisive endgames
+- **Performance characteristic**: Slightly conservative (excellent material preservation)
 
 ## Core Goals
 
