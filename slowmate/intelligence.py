@@ -9,9 +9,65 @@ Architecture: Modular move filters that can be easily extended with additional i
 """
 
 import random
-from typing import Optional, List, Tuple, Dict
+from typing import Optional, List, Tuple, Dict, Any
 import chess
 from slowmate.engine import SlowMateEngine
+
+
+# =============================================================================
+# DEBUGGING CONFIGURATION - FEATURE TOGGLES
+# =============================================================================
+# Toggle individual features on/off for isolation testing and debugging.
+# When a feature is disabled, it returns a minimal/zero value instead of running
+# its full evaluation, allowing you to test feature interactions and identify
+# which components might be interfering with each other.
+
+DEBUG_CONFIG = {
+    # Core game state detection
+    'checkmate_detection': True,        # Find and prioritize checkmate moves
+    'stalemate_detection': True,        # Avoid moves that cause stalemate
+    'draw_prevention': True,            # Avoid moves that cause draws
+    
+    # Material and position evaluation
+    'material_calculation': True,       # Basic piece value calculation
+    'positional_evaluation': True,     # Piece-square table (PST) evaluation
+    'game_phase_detection': True,      # Opening/middlegame/endgame phase detection
+    
+    # Safety and tactical features
+    'king_safety': True,               # King safety evaluation (castling, pawn shield)
+    'threat_awareness': True,          # Piece threat detection and penalty system
+    'capture_calculation': True,       # Capture opportunity evaluation
+    'tactical_combinations': True,     # Unified tactical bonus (threats + captures)
+    
+    # Future features (placeholders for when implemented)
+    'attack_patterns': False,          # Planned: Attack pattern recognition
+    'piece_coordination': False,      # Planned: Piece coordination evaluation
+    'pawn_structure': False,          # Future: Advanced pawn structure analysis
+    'opening_book': False,            # Future: Opening book integration
+}
+
+# Debug values to return when features are disabled
+DEBUG_DISABLED_VALUES = {
+    'material_calculation': 0.0,       # No material advantage
+    'positional_evaluation': 0.0,     # No positional advantage  
+    'king_safety': 0.0,              # Neutral king safety
+    'threat_awareness': 0.0,          # No threat penalties
+    'capture_calculation': 0.0,       # No capture bonuses
+    'tactical_combinations': 0.001,   # Tiny value to identify in debug output
+    'attack_patterns': 0.0,
+    'piece_coordination': 0.0,
+    'pawn_structure': 0.0,
+}
+
+def is_feature_enabled(feature_name: str) -> bool:
+    """Check if a debugging feature is enabled."""
+    return DEBUG_CONFIG.get(feature_name, False)
+
+def get_disabled_value(feature_name: str) -> float:
+    """Get the return value for a disabled feature."""
+    return DEBUG_DISABLED_VALUES.get(feature_name, 0.0)
+
+# =============================================================================
 
 
 class MoveIntelligence:
@@ -230,6 +286,9 @@ class MoveIntelligence:
         Returns:
             'opening' | 'middlegame' | 'endgame'
         """
+        if not is_feature_enabled('game_phase_detection'):
+            return 'middlegame'  # Default to middlegame when disabled
+            
         board = self.engine.board
         
         # Count total material (excluding kings)
@@ -354,6 +413,9 @@ class MoveIntelligence:
         Returns:
             List of moves that deliver checkmate
         """
+        if not is_feature_enabled('checkmate_detection'):
+            return []  # Return empty list when disabled
+            
         checkmate_moves = []
         
         for move in legal_moves:
@@ -379,6 +441,9 @@ class MoveIntelligence:
         Returns:
             List of moves that don't lead to immediate stalemate/draw
         """
+        if not is_feature_enabled('stalemate_detection') and not is_feature_enabled('draw_prevention'):
+            return legal_moves  # Return all moves when both features disabled
+            
         good_moves = []
         
         for move in legal_moves:
@@ -386,13 +451,18 @@ class MoveIntelligence:
             self.engine.board.push(move)
             
             # Check if this move creates a bad position
-            is_bad_move = (
-                self.engine.board.is_stalemate() or
-                self.engine.board.is_insufficient_material() or
-                self.engine.board.is_seventyfive_moves() or
-                self.engine.board.is_fivefold_repetition() or
-                self.engine.board.can_claim_draw()
-            )
+            is_bad_move = False
+            
+            if is_feature_enabled('stalemate_detection'):
+                is_bad_move = is_bad_move or self.engine.board.is_stalemate()
+            
+            if is_feature_enabled('draw_prevention'):
+                is_bad_move = is_bad_move or (
+                    self.engine.board.is_insufficient_material() or
+                    self.engine.board.is_seventyfive_moves() or
+                    self.engine.board.is_fivefold_repetition() or
+                    self.engine.board.can_claim_draw()
+                )
             
             if not is_bad_move:
                 good_moves.append(move)
@@ -457,15 +527,36 @@ class MoveIntelligence:
         white_pst = self._calculate_pst_score(chess.WHITE)
         black_pst = self._calculate_pst_score(chess.BLACK)
         
-        # Combine material and positional scores
+        # King safety evaluation
+        white_king_safety = self._calculate_king_safety(chess.WHITE)
+        black_king_safety = self._calculate_king_safety(chess.BLACK)
+        
+        # Captures evaluation
+        white_captures = self._calculate_captures_score(chess.WHITE)
+        black_captures = self._calculate_captures_score(chess.BLACK)
+        
+        # Combine all scores from current player's perspective
         if current_player == chess.WHITE:
             material_score = white_material - black_material
             positional_score = white_pst - black_pst
+            king_safety_score = white_king_safety - black_king_safety
+            captures_score = white_captures - black_captures
         else:
             material_score = black_material - white_material
             positional_score = black_pst - white_pst
+            king_safety_score = black_king_safety - white_king_safety
+            captures_score = black_captures - white_captures
         
-        total_score = material_score + positional_score
+        total_score = material_score + positional_score + king_safety_score + captures_score
+        
+        # TACTICAL COMBINATION BONUS: Reward moves that solve multiple tactical problems
+        combination_bonus = self._calculate_tactical_combination_bonus(move, current_player)
+        print(f"EVAL_DEBUG: Move {move} - player {current_player} - bonus {combination_bonus}")
+        total_score += combination_bonus
+        
+        # Debug output for key moves
+        if str(move) in ['g2a8', 'g2b7']:
+            print(f"DEBUG: Move {move} combination bonus: {combination_bonus}, total: {total_score}")
         
         # Undo the move
         self.engine.board.pop()
@@ -491,36 +582,105 @@ class MoveIntelligence:
         white_king_safety = self._calculate_king_safety(chess.WHITE)
         black_king_safety = self._calculate_king_safety(chess.BLACK)
         
+        # Captures evaluation (tactical opportunities)
+        white_captures = self._calculate_captures_score(chess.WHITE)
+        black_captures = self._calculate_captures_score(chess.BLACK)
+        
         # Combine scores from current player's perspective
         if self.engine.board.turn == chess.WHITE:
             material_score = white_material - black_material
             positional_score = white_pst - black_pst
             king_safety_score = white_king_safety - black_king_safety
+            captures_score = white_captures - black_captures
         else:
             material_score = black_material - white_material
             positional_score = black_pst - white_pst
             king_safety_score = black_king_safety - white_king_safety
+            captures_score = black_captures - white_captures
         
-        return material_score + positional_score + king_safety_score
+        return material_score + positional_score + king_safety_score + captures_score
     
     def _calculate_material(self, color: chess.Color) -> int:
         """
-        Calculate total material value for a given color.
+        Calculate total material value for a given color with threat awareness.
         
         Args:
             color: The color to calculate material for
             
         Returns:
-            Total material value in centipawns
+            Total material value in centipawns (threat-adjusted)
         """
+        return self._calculate_material_with_threats(color)
+    
+    def _calculate_material_with_threats(self, color: chess.Color) -> int:
+        """
+        Calculate material value with threat modifiers applied.
+        Threatened pieces are valued at 50% to reflect risk.
+        
+        Args:
+            color: The color to calculate material for
+            
+        Returns:
+            Threat-adjusted material value in centipawns
+        """
+        if not is_feature_enabled('material_calculation'):
+            return int(get_disabled_value('material_calculation'))
+            
         total = 0
         
-        for piece_type in [chess.PAWN, chess.KNIGHT, chess.BISHOP, 
-                          chess.ROOK, chess.QUEEN]:
-            piece_count = len(self.engine.board.pieces(piece_type, color))
-            total += piece_count * self.PIECE_VALUES[piece_type]
+        # Iterate through all squares to get specific piece positions
+        for square in chess.SQUARES:
+            piece = self.engine.board.piece_at(square)
+            if piece and piece.color == color and piece.piece_type != chess.KING:
+                base_value = self.PIECE_VALUES[piece.piece_type]
+                
+                # Apply threat modifier if threat awareness is enabled
+                if is_feature_enabled('threat_awareness') and self._is_piece_under_threat(square, color):
+                    # Threatened piece worth 50% of base value
+                    threat_modifier = 0.5
+                else:
+                    # Safe piece worth full value (or threat awareness disabled)
+                    threat_modifier = 1.0
+                
+                total += int(base_value * threat_modifier)
         
         return total
+    
+    def _is_piece_under_threat(self, square: chess.Square, piece_color: chess.Color) -> bool:
+        """
+        Determine if a piece on a given square is under threat by the opponent.
+        Only considers actual attacks, not potential future attacks.
+        
+        Args:
+            square: The square to check
+            piece_color: The color of the piece on the square
+            
+        Returns:
+            True if the piece is under threat, False otherwise
+        """
+        opponent_color = not piece_color
+        board = self.engine.board
+        
+        # Use python-chess built-in attack detection for accuracy
+        return board.is_attacked_by(opponent_color, square)
+    
+    def _piece_attacks_square(self, attacker_square: chess.Square, target_square: chess.Square, 
+                             attacker_piece: chess.Piece) -> bool:
+        """
+        Check if a piece on attacker_square can attack target_square.
+        This is a backup method - we now use python-chess built-in attack detection.
+        
+        Args:
+            attacker_square: Square of the attacking piece
+            target_square: Square being attacked
+            attacker_piece: The attacking piece
+            
+        Returns:
+            True if the piece can attack the target square
+        """
+        # This method is kept for potential future enhancements
+        # Currently we use board.is_attacked_by() for accuracy
+        return self.engine.board.is_attacked_by(attacker_piece.color, target_square)
     
     def _calculate_pst_score(self, color: chess.Color) -> int:
         """
@@ -532,6 +692,9 @@ class MoveIntelligence:
         Returns:
             Total PST score in centipawns
         """
+        if not is_feature_enabled('positional_evaluation'):
+            return int(get_disabled_value('positional_evaluation'))
+            
         total_pst_score = 0
         
         # Iterate through all piece types
@@ -556,6 +719,9 @@ class MoveIntelligence:
         Returns:
             King safety score in centipawns (positive = safer)
         """
+        if not is_feature_enabled('king_safety'):
+            return int(get_disabled_value('king_safety'))
+            
         king_safety_score = 0
         
         # 1. Castling Rights Evaluation (small bonus for maintaining rights)
@@ -681,6 +847,329 @@ class MoveIntelligence:
         
         return shield_bonus
     
+    def _calculate_captures_score(self, color: chess.Color) -> int:
+        """
+        Calculate captures score - bonus/penalty for offensive capture opportunities.
+        
+        This evaluates all possible captures by pieces of the given color and assigns:
+        - High positive bonus for winning captures (victim > attacker)
+        - Small positive bonus for equal captures (victim = attacker)  
+        - Heavy penalty for losing captures (victim < attacker)
+        
+        Args:
+            color: The color to calculate captures score for
+            
+        Returns:
+            Captures score in centipawns
+        """
+        if not is_feature_enabled('capture_calculation'):
+            return int(get_disabled_value('capture_calculation'))
+            
+        capture_score = 0
+        
+        # Get all legal moves for this color
+        if self.engine.board.turn != color:
+            # If it's not this color's turn, we can't evaluate their captures directly
+            # Instead, we need to analyze what captures would be available
+            return self._calculate_potential_captures_score(color)
+        
+        legal_moves = list(self.engine.board.legal_moves)
+        
+        for move in legal_moves:
+            if self.engine.board.is_capture(move):
+                capture_evaluation = self._evaluate_capture_move(move)
+                capture_score += capture_evaluation['net_score']
+        
+        return capture_score
+    
+    def _calculate_potential_captures_score(self, color: chess.Color) -> int:
+        """
+        Calculate potential captures score when it's not the given color's turn.
+        
+        This analyzes what captures would be available if it were this color's turn.
+        Used for position evaluation when we need to consider both sides' opportunities.
+        
+        Args:
+            color: The color to analyze potential captures for
+            
+        Returns:
+            Potential captures score in centipawns
+        """
+        capture_score = 0
+        
+        # Look at each piece of the given color and see what it can capture
+        for square in chess.SQUARES:
+            piece = self.engine.board.piece_at(square)
+            if piece and piece.color == color:
+                # Get all squares this piece attacks
+                attacks = self.engine.board.attacks(square)
+                
+                for target_square in attacks:
+                    target_piece = self.engine.board.piece_at(target_square)
+                    if target_piece and target_piece.color != color:
+                        # This is a potential capture
+                        capture_evaluation = self._evaluate_potential_capture(
+                            piece, target_piece, square, target_square
+                        )
+                        capture_score += capture_evaluation['net_score']
+        
+        return capture_score
+    
+    def _evaluate_capture_move(self, move: chess.Move) -> Dict[str, Any]:
+        """
+        Evaluate a capture move and return detailed analysis.
+        
+        Args:
+            move: The capture move to evaluate
+            
+        Returns:
+            Dictionary with capture evaluation details
+        """
+        attacker_piece = self.engine.board.piece_at(move.from_square)
+        victim_piece = self.engine.board.piece_at(move.to_square)
+        
+        if not attacker_piece or not victim_piece:
+            return {'net_score': 0, 'type': 'not_capture'}
+        
+        return self._evaluate_potential_capture(
+            attacker_piece, victim_piece, move.from_square, move.to_square
+        )
+    
+    def _evaluate_potential_capture(self, attacker_piece, victim_piece, 
+                                   attacker_square: chess.Square, victim_square: chess.Square) -> Dict[str, Any]:
+        """
+        Evaluate a potential capture between two pieces.
+        
+        Args:
+            attacker_piece: The piece making the capture
+            victim_piece: The piece being captured
+            attacker_square: Square of the attacking piece
+            victim_square: Square of the victim piece
+            
+        Returns:
+            Dictionary with detailed capture evaluation
+        """
+        attacker_value = self.PIECE_VALUES[attacker_piece.piece_type]
+        victim_value = self.PIECE_VALUES[victim_piece.piece_type]
+        
+        material_gain = victim_value - attacker_value
+        
+        if material_gain > 0:
+            # Winning capture - victim worth more than attacker
+            capture_type = 'winning'
+            # High bonus for winning captures (75% of material gain)
+            net_score = int(material_gain * 0.75)
+            
+        elif material_gain == 0:
+            # Equal capture - same value pieces
+            capture_type = 'equal'
+            # Small bonus for equal captures (encourage activity)
+            net_score = 25  # Small bonus, can be overridden by other factors
+            
+        else:
+            # Losing capture - victim worth less than attacker
+            capture_type = 'losing'
+            # Heavy penalty - assume we'll lose our piece
+            # Penalty is 90% of our piece value (we lose almost everything)
+            net_score = int(material_gain * 0.9)  # This will be negative
+        
+        return {
+            'type': capture_type,
+            'attacker_value': attacker_value,
+            'victim_value': victim_value,
+            'material_gain': material_gain,
+            'net_score': net_score,
+            'attacker_square': chess.square_name(attacker_square),
+            'victim_square': chess.square_name(victim_square),
+            'attacker_piece': attacker_piece.symbol(),
+            'victim_piece': victim_piece.symbol()
+        }
+    
+    def _get_captures_analysis(self, color: chess.Color) -> Dict[str, Any]:
+        """
+        Get detailed captures analysis for debugging and evaluation details.
+        
+        Args:
+            color: The color to analyze captures for
+            
+        Returns:
+            Dictionary with captures analysis details
+        """
+        winning_captures = []
+        equal_captures = []
+        losing_captures = []
+        total_captures_score = 0
+        
+        # Analyze potential captures for this color
+        for square in chess.SQUARES:
+            piece = self.engine.board.piece_at(square)
+            if piece and piece.color == color:
+                attacks = self.engine.board.attacks(square)
+                
+                for target_square in attacks:
+                    target_piece = self.engine.board.piece_at(target_square)
+                    if target_piece and target_piece.color != color:
+                        capture_eval = self._evaluate_potential_capture(
+                            piece, target_piece, square, target_square
+                        )
+                        
+                        total_captures_score += capture_eval['net_score']
+                        
+                        if capture_eval['type'] == 'winning':
+                            winning_captures.append(capture_eval)
+                        elif capture_eval['type'] == 'equal':
+                            equal_captures.append(capture_eval)
+                        elif capture_eval['type'] == 'losing':
+                            losing_captures.append(capture_eval)
+        
+        return {
+            'winning_captures': winning_captures,
+            'equal_captures': equal_captures,
+            'losing_captures': losing_captures,
+            'total_score': total_captures_score,
+            'capture_count': len(winning_captures) + len(equal_captures) + len(losing_captures)
+        }
+
+    def _get_threat_analysis(self, color: chess.Color) -> Dict[str, Any]:
+        """
+        Get detailed threat analysis for debugging and evaluation details.
+        
+        Args:
+            color: The color to analyze threats for
+            
+        Returns:
+            Dictionary with threat analysis details
+        """
+        threatened_pieces = []
+        safe_pieces = []
+        total_threat_penalty = 0
+        
+        for square in chess.SQUARES:
+            piece = self.engine.board.piece_at(square)
+            if piece and piece.color == color and piece.piece_type != chess.KING:
+                base_value = self.PIECE_VALUES[piece.piece_type]
+                
+                if self._is_piece_under_threat(square, color):
+                    threat_penalty = base_value // 2  # 50% penalty
+                    threatened_pieces.append({
+                        'square': chess.square_name(square),
+                        'piece': piece.symbol(),
+                        'base_value': base_value,
+                        'threat_penalty': threat_penalty,
+                        'effective_value': base_value - threat_penalty
+                    })
+                    total_threat_penalty += threat_penalty
+                else:
+                    safe_pieces.append({
+                        'square': chess.square_name(square),
+                        'piece': piece.symbol(),
+                        'value': base_value
+                    })
+        
+        return {
+            'threatened_pieces': threatened_pieces,
+            'safe_pieces': safe_pieces,
+            'total_threat_penalty': total_threat_penalty,
+            'pieces_under_threat': len(threatened_pieces),
+            'safe_pieces_count': len(safe_pieces)
+        }
+    
+    def _calculate_tactical_combination_bonus(self, move: chess.Move, color: chess.Color) -> int:
+        """
+        Calculate bonus for moves that solve multiple tactical problems.
+        This unifies threats and captures evaluation to prioritize moves that:
+        1. Escape threats while capturing valuable pieces
+        2. Remove attacking pieces while gaining material
+        3. Create forcing sequences that improve position
+        
+        Args:
+            move: The move to evaluate
+            color: The color making the move
+            
+        Returns:
+            Bonus score in centipawns
+        """
+        if not is_feature_enabled('tactical_combinations'):
+            return int(get_disabled_value('tactical_combinations'))
+            
+        bonus = 0
+        from_square = move.from_square
+        to_square = move.to_square
+        
+        # Get the piece being moved
+        piece = self.engine.board.piece_at(from_square)
+        if not piece:
+            return 0
+            
+        # Check if this move solves a threat (piece was under attack)
+        escapes_threat = is_feature_enabled('threat_awareness') and self._is_piece_under_threat(from_square, color)
+        
+        # Check if this is a capture
+        captured_piece = self.engine.board.piece_at(to_square)
+        is_capture = captured_piece is not None
+        
+        # Debug output
+        if str(move) in ['g2a8', 'g2b7']:
+            print(f"DEBUG: Move {move} - escapes_threat: {escapes_threat}, is_capture: {is_capture}")
+        
+        # Combination bonus: Escape threat + capture valuable piece
+        if escapes_threat and is_capture:
+            # Base bonus for solving both problems at once
+            bonus += 200  # 2.0 pawn bonus for tactical combination
+            
+            # Additional bonus based on value difference
+            piece_value = self.PIECE_VALUES[piece.piece_type]
+            captured_value = self.PIECE_VALUES[captured_piece.piece_type]
+            
+            # Extra bonus if we're capturing a more valuable piece while escaping
+            if captured_value > piece_value:
+                bonus += min(captured_value - piece_value, 400)  # Cap at 4 pawns
+            
+            # Extra bonus if we're removing the piece that was threatening us
+            if self.engine.board.is_attacked_by(not color, from_square):
+                # Check if the captured piece was one of the attackers
+                if captured_piece and self.engine.board.attacks(to_square):
+                    if from_square in self.engine.board.attacks(to_square):
+                        bonus += 100  # 1.0 pawn bonus for removing attacker
+                        
+            # Special bonus for escaping threat by capturing high-value pieces
+            if captured_value >= 500:  # Rook or Queen
+                bonus += 300  # Extra 3.0 pawn bonus for capturing rook/queen while escaping
+        
+        # Bonus for capturing while creating new threats
+        elif is_capture:
+            # Make the move temporarily to see if it creates new tactical opportunities
+            self.engine.board.push(move)
+            
+            try:
+                # Check if this capture creates new threats against enemy pieces
+                new_threats = 0
+                if is_feature_enabled('threat_awareness'):
+                    for square in chess.SQUARES:
+                        enemy_piece = self.engine.board.piece_at(square)
+                        if enemy_piece and enemy_piece.color != color:
+                            if self._is_piece_under_threat(square, not color):
+                                new_threats += 1
+                
+                # Small bonus for captures that create additional threats
+                if new_threats > 0:
+                    bonus += min(new_threats * 10, 30)  # Max 0.3 pawn bonus
+                    
+            finally:
+                self.engine.board.pop()
+        
+        # Bonus for moves that escape threats to central squares
+        elif escapes_threat:
+            # Small bonus for escaping to better squares
+            to_file = chess.square_file(to_square)
+            to_rank = chess.square_rank(to_square)
+            
+            # Bonus for escaping to central squares (d4, d5, e4, e5)
+            if to_file in [3, 4] and to_rank in [3, 4]:
+                bonus += 15  # 0.15 pawn bonus for centralizing while escaping
+        
+        return bonus
+    
     def get_position_evaluation(self) -> Dict[str, int]:
         """
         Get detailed evaluation of the current position.
@@ -697,6 +1186,17 @@ class MoveIntelligence:
         white_king_safety = self._calculate_king_safety(chess.WHITE)
         black_king_safety = self._calculate_king_safety(chess.BLACK)
         
+        white_captures = self._calculate_captures_score(chess.WHITE)
+        black_captures = self._calculate_captures_score(chess.BLACK)
+        
+        # Get threat analysis for detailed breakdown
+        white_threats = self._get_threat_analysis(chess.WHITE)
+        black_threats = self._get_threat_analysis(chess.BLACK)
+        
+        # Get captures analysis for detailed breakdown
+        white_captures_analysis = self._get_captures_analysis(chess.WHITE)
+        black_captures_analysis = self._get_captures_analysis(chess.BLACK)
+        
         return {
             'white_material': white_material,
             'black_material': black_material,
@@ -707,6 +1207,20 @@ class MoveIntelligence:
             'white_king_safety': white_king_safety,
             'black_king_safety': black_king_safety,
             'king_safety_difference': white_king_safety - black_king_safety,
+            'white_captures': white_captures,
+            'black_captures': black_captures,
+            'captures_difference': white_captures - black_captures,
+            'white_threat_penalty': white_threats['total_threat_penalty'],
+            'black_threat_penalty': black_threats['total_threat_penalty'],
+            'white_pieces_under_threat': white_threats['pieces_under_threat'],
+            'black_pieces_under_threat': black_threats['pieces_under_threat'],
+            'threat_difference': black_threats['total_threat_penalty'] - white_threats['total_threat_penalty'],
+            'white_winning_captures': len(white_captures_analysis['winning_captures']),
+            'white_equal_captures': len(white_captures_analysis['equal_captures']),
+            'white_losing_captures': len(white_captures_analysis['losing_captures']),
+            'black_winning_captures': len(black_captures_analysis['winning_captures']),
+            'black_equal_captures': len(black_captures_analysis['equal_captures']),
+            'black_losing_captures': len(black_captures_analysis['losing_captures']),
             'total_evaluation': self._evaluate_position(),
             'current_player_advantage': self._evaluate_position()
         }

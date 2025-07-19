@@ -12,6 +12,7 @@ import threading
 from typing import Optional, List
 import chess
 from slowmate.intelligence import IntelligentSlowMateEngine
+from slowmate import __version__, __author__
 
 
 class UCIInterface:
@@ -31,8 +32,8 @@ class UCIInterface:
         
         # Engine identification
         self.engine_name = "SlowMate"
-        self.engine_version = "0.0.2-dev"
-        self.author = "SlowMate Project"
+        self.engine_version = __version__
+        self.author = __author__
     
     def run(self):
         """
