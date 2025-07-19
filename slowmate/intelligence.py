@@ -35,6 +35,185 @@ class MoveIntelligence:
         chess.KING: 0         # King safety handled separately
     }
     
+    # Piece-Square Tables (PST) for positional evaluation
+    # Phase 1: Base PST - Universal positioning preferences (fallback)
+    # Board representation: a1=0, b1=1, ..., h8=63 (chess.SQUARE_NAMES order)
+    # Values in centipawns (positive = good position)
+    BASE_PST = [
+        # Rank 1 (a1-h1): Own piece starting positions
+        -1, -1,  0,  0,  1,  0, -1, -1,  # a1-h1: R N B Q K B N R
+        # Rank 2 (a2-h2): Own pawn starting positions = 0
+         0,  0,  0,  0,  0,  0,  0,  0,  # a2-h2: Own pawns
+        # Rank 3 (a3-h3): Internal squares, avoid edges
+        -1,  1,  1,  1,  1,  1,  1, -1,  # a3-h3
+        # Rank 4 (a4-h4): Internal squares, center preference  
+        -1,  1,  2,  2,  2,  2,  1, -1,  # a4-h4: center +2
+        # Rank 5 (a5-h5): Internal squares, center preference
+        -1,  1,  2,  2,  2,  2,  1, -1,  # a5-h5: center +2
+        # Rank 6 (a6-h6): Internal squares, avoid edges
+        -1,  1,  1,  1,  1,  1,  1, -1,  # a6-h6
+        # Rank 7 (a7-h7): Black pawn starting positions = 0  
+         0,  0,  0,  0,  0,  0,  0,  0,  # a7-h7: Black pawns
+        # Rank 8 (a8-h8): Black piece starting positions = 0
+         0,  0,  0,  0,  0,  0,  0,  0   # a8-h8: Black pieces
+    ]
+    
+    # Phase 2: Piece-Specific PST Tables
+    # Each piece gets tailored positional preferences
+    
+    # Pawn PST - Encourage advancement and center control
+    PAWN_PST = [
+        # Rank 1: Pawns can't be here (promotion squares)
+         0,   0,   0,   0,   0,   0,   0,   0,
+        # Rank 2: Starting position, neutral
+         0,   0,   0,   0,   0,   0,   0,   0,
+        # Rank 3: Modest advance bonus
+         5,  10,  10, -20, -20,  10,  10,   5,
+        # Rank 4: Good central advance, strong center bonus
+         5,  -5, -10,  20,  20, -10,  -5,   5,
+        # Rank 5: Strong central control
+         0,   0,   0,  25,  25,   0,   0,   0,
+        # Rank 6: Advanced pawns, very good
+        10,  10,  20,  30,  30,  20,  10,  10,
+        # Rank 7: About to promote, excellent
+        50,  50,  50,  50,  50,  50,  50,  50,
+        # Rank 8: Promotion squares (shouldn't stay as pawn)
+         0,   0,   0,   0,   0,   0,   0,   0
+    ]
+    
+    # Knight PST - Prefer center, avoid edges
+    KNIGHT_PST = [
+        -50, -40, -30, -30, -30, -30, -40, -50,
+        -40, -20,   0,   0,   0,   0, -20, -40,
+        -30,   0,  10,  15,  15,  10,   0, -30,
+        -30,   5,  15,  20,  20,  15,   5, -30,
+        -30,   0,  15,  20,  20,  15,   0, -30,
+        -30,   5,  10,  15,  15,  10,   5, -30,
+        -40, -20,   0,   5,   5,   0, -20, -40,
+        -50, -40, -30, -30, -30, -30, -40, -50
+    ]
+    
+    # Bishop PST - Prefer long diagonals and development
+    BISHOP_PST = [
+        -20, -10, -10, -10, -10, -10, -10, -20,
+        -10,   0,   0,   0,   0,   0,   0, -10,
+        -10,   0,   5,  10,  10,   5,   0, -10,
+        -10,   5,   5,  10,  10,   5,   5, -10,
+        -10,   0,  10,  10,  10,  10,   0, -10,
+        -10,  10,  10,  10,  10,  10,  10, -10,
+        -10,   5,   0,   0,   0,   0,   5, -10,
+        -20, -10, -10, -10, -10, -10, -10, -20
+    ]
+    
+    # Rook PST - Prefer open files and 7th rank
+    ROOK_PST = [
+        # Rank 1: Starting rank, neutral
+         0,   0,   0,   0,   0,   0,   0,   0,
+        # Rank 2: Second rank, good for activity
+         5,  10,  10,  10,  10,  10,  10,   5,
+        # Rank 3-6: Middle ranks, avoid files a/h
+        -5,   0,   0,   0,   0,   0,   0,  -5,
+        -5,   0,   0,   0,   0,   0,   0,  -5,
+        -5,   0,   0,   0,   0,   0,   0,  -5,
+        -5,   0,   0,   0,   0,   0,   0,  -5,
+        # Rank 7: Excellent for attacks on opponent
+         5,  10,  10,  15,  15,  10,  10,   5,
+        # Rank 8: Opponent back rank, very good
+         0,   0,   0,   5,   5,   0,   0,   0
+    ]
+    
+    # Queen PST - Flexible positioning, slight center preference
+    QUEEN_PST = [
+        -20, -10, -10,  -5,  -5, -10, -10, -20,
+        -10,   0,   0,   0,   0,   0,   0, -10,
+        -10,   0,   5,   5,   5,   5,   0, -10,
+         -5,   0,   5,   5,   5,   5,   0,  -5,
+          0,   0,   5,   5,   5,   5,   0,  -5,
+        -10,   5,   5,   5,   5,   5,   0, -10,
+        -10,   0,   5,   0,   0,   0,   0, -10,
+        -20, -10, -10,  -5,  -5, -10, -10, -20
+    ]
+    
+    # King PST - Safety first, prefer back rank in middlegame
+    KING_PST = [
+        # Rank 1: Back rank safety (where king starts)
+         20,  30,  10,   5,   5,  10,  30,  20,
+        # Rank 2: Second rank, still relatively safe
+         20,  20,   0,   0,   0,   0,  20,  20,
+        # Rank 3: Getting more exposed
+        -10, -20, -20, -20, -20, -20, -20, -10,
+        # Rank 4: Very exposed
+        -20, -30, -30, -40, -40, -30, -30, -20,
+        # Rank 5: Very exposed
+        -30, -40, -40, -50, -50, -40, -40, -30,
+        # Rank 6: Very exposed
+        -30, -40, -40, -50, -50, -40, -40, -30,
+        # Rank 7: Very exposed
+        -30, -40, -40, -50, -50, -40, -40, -30,
+        # Rank 8: Opponent's back rank (usually empty)
+        -30, -40, -40, -50, -50, -40, -40, -30
+    ]
+    
+    # Phase 3: Endgame-Specific PST Tables
+    # These tables activate when game phase is detected as endgame
+    
+    # Pawn Endgame PST - Promote at all costs!
+    PAWN_ENDGAME_PST = [
+        # Rank 1: Pawns can't be here
+         0,   0,   0,   0,   0,   0,   0,   0,
+        # Rank 2: Starting position (endgame shouldn't have pawns here)
+         0,   0,   0,   0,   0,   0,   0,   0,
+        # Rank 3: Push forward aggressively
+        20,  25,  30,  35,  35,  30,  25,  20,
+        # Rank 4: Even more aggressive
+        30,  35,  40,  50,  50,  40,  35,  30,
+        # Rank 5: Very advanced
+        50,  60,  70,  80,  80,  70,  60,  50,
+        # Rank 6: Almost there!
+        80,  90, 100, 120, 120, 100,  90,  80,
+        # Rank 7: About to promote - maximum value!
+       200, 200, 200, 200, 200, 200, 200, 200,
+        # Rank 8: Promotion
+         0,   0,   0,   0,   0,   0,   0,   0
+    ]
+    
+    # King Endgame PST - Activate and centralize!
+    KING_ENDGAME_PST = [
+        # Rank 1: Get out of back rank in endgame
+        -20, -10, -10,  -5,  -5, -10, -10, -20,
+        # Rank 2: Start moving forward
+        -10,  -5,   0,   5,   5,   0,  -5, -10,
+        # Rank 3: Good activity
+         -5,   0,  10,  15,  15,  10,   0,  -5,
+        # Rank 4: Very active
+          0,   5,  15,  25,  25,  15,   5,   0,
+        # Rank 5: Excellent central activity
+          5,  10,  20,  30,  30,  20,  10,   5,
+        # Rank 6: Perfect centralization
+         10,  15,  25,  35,  35,  25,  15,  10,
+        # Rank 7: Supporting pawn advancement
+         15,  20,  30,  35,  35,  30,  20,  15,
+        # Rank 8: Following pawns to promotion
+         10,  15,  20,  25,  25,  20,  15,  10
+    ]
+    
+    # Rook Endgame PST - Control ranks and files, limit opponent king
+    ROOK_ENDGAME_PST = [
+        # Rank 1: Back rank control
+         5,  10,  10,  15,  15,  10,  10,   5,
+        # Rank 2: Good second rank control
+        10,  15,  15,  20,  20,  15,  15,  10,
+        # Rank 3-6: Central files preferred, avoid edges
+         0,  10,  15,  15,  15,  15,  10,   0,
+         0,  10,  15,  15,  15,  15,  10,   0,
+         0,  10,  15,  15,  15,  15,  10,   0,
+         0,  10,  15,  15,  15,  15,  10,   0,
+        # Rank 7: Excellent attacking rank against opponent
+        15,  20,  25,  30,  30,  25,  20,  15,
+        # Rank 8: Opponent back rank domination
+        10,  15,  20,  25,  25,  20,  15,  10
+    ]
+    
     def __init__(self, engine: SlowMateEngine):
         """
         Initialize move intelligence with reference to engine.
@@ -43,6 +222,98 @@ class MoveIntelligence:
             engine: The SlowMateEngine instance to analyze
         """
         self.engine = engine
+    
+    def detect_game_phase(self) -> str:
+        """
+        Detect the current game phase for PST selection.
+        
+        Returns:
+            'opening' | 'middlegame' | 'endgame'
+        """
+        board = self.engine.board
+        
+        # Count total material (excluding kings)
+        material_count = 0
+        piece_count = 0
+        
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece and piece.piece_type != chess.KING:
+                piece_count += 1
+                material_count += self.PIECE_VALUES[piece.piece_type]
+        
+        # Divide by 2 since we counted both sides
+        total_material = material_count // 2
+        total_pieces = piece_count // 2
+        
+        # Endgame criteria (per side):
+        # - Less than 13 points of material (roughly R+B+N = 1150 points)
+        # - Or less than 6 pieces total per side
+        if total_material < 1300 or total_pieces < 6:
+            return 'endgame'
+        
+        # Opening criteria:
+        # - More than 20 points of material (most pieces still on board)
+        # - Or more than 12 pieces per side  
+        elif total_material > 2000 or total_pieces > 12:
+            return 'opening'
+        
+        # Everything else is middlegame
+        else:
+            return 'middlegame'
+    
+    def _get_pst_value(self, square: chess.Square, piece_type: int, color: chess.Color) -> int:
+        """
+        Get piece-square table value for a piece on a square.
+        Now includes game phase awareness for enhanced endgame play.
+        
+        Args:
+            square: The square the piece is on
+            piece_type: The type of piece (PAWN, KNIGHT, etc.)
+            color: The color of the piece
+        
+        Returns:
+            PST value in centipawns
+        """
+        game_phase = self.detect_game_phase()
+        
+        # For black pieces, flip the square to get white's perspective
+        if color == chess.BLACK:
+            # Flip rank: rank 0 becomes 7, rank 1 becomes 6, etc.
+            flipped_square = chess.square(chess.square_file(square), 7 - chess.square_rank(square))
+        else:
+            flipped_square = square
+        
+        # Select appropriate PST based on piece type and game phase
+        if piece_type == chess.PAWN:
+            if game_phase == 'endgame':
+                pst_value = self.PAWN_ENDGAME_PST[flipped_square]
+            else:
+                pst_value = self.PAWN_PST[flipped_square]
+                
+        elif piece_type == chess.KING:
+            if game_phase == 'endgame':
+                pst_value = self.KING_ENDGAME_PST[flipped_square]
+            else:
+                pst_value = self.KING_PST[flipped_square]
+                
+        elif piece_type == chess.ROOK:
+            if game_phase == 'endgame':
+                pst_value = self.ROOK_ENDGAME_PST[flipped_square]
+            else:
+                pst_value = self.ROOK_PST[flipped_square]
+                
+        elif piece_type == chess.KNIGHT:
+            pst_value = self.KNIGHT_PST[flipped_square]
+        elif piece_type == chess.BISHOP:
+            pst_value = self.BISHOP_PST[flipped_square]
+        elif piece_type == chess.QUEEN:
+            pst_value = self.QUEEN_PST[flipped_square]
+        else:
+            pst_value = 0
+        
+        # Return positive for white, negative for black
+        return pst_value if color == chess.WHITE else -pst_value
     
     def select_best_move(self) -> Optional[chess.Move]:
         """
@@ -178,18 +449,28 @@ class MoveIntelligence:
         self.engine.board.push(move)
         
         # Calculate position evaluation from the original player's perspective
+        # Material evaluation
         white_material = self._calculate_material(chess.WHITE)
         black_material = self._calculate_material(chess.BLACK)
         
+        # PST evaluation
+        white_pst = self._calculate_pst_score(chess.WHITE)
+        black_pst = self._calculate_pst_score(chess.BLACK)
+        
+        # Combine material and positional scores
         if current_player == chess.WHITE:
-            score = white_material - black_material
+            material_score = white_material - black_material
+            positional_score = white_pst - black_pst
         else:
-            score = black_material - white_material
+            material_score = black_material - white_material
+            positional_score = black_pst - white_pst
+        
+        total_score = material_score + positional_score
         
         # Undo the move
         self.engine.board.pop()
         
-        return score
+        return total_score
     
     def _evaluate_position(self) -> int:
         """
@@ -198,15 +479,23 @@ class MoveIntelligence:
         Returns:
             Evaluation score from current player's perspective
         """
-        # Simple material evaluation
+        # Material evaluation
         white_material = self._calculate_material(chess.WHITE)
         black_material = self._calculate_material(chess.BLACK)
         
-        # Return score from current player's perspective
+        # PST evaluation
+        white_pst = self._calculate_pst_score(chess.WHITE)
+        black_pst = self._calculate_pst_score(chess.BLACK)
+        
+        # Combine scores from current player's perspective
         if self.engine.board.turn == chess.WHITE:
-            return white_material - black_material
+            material_score = white_material - black_material
+            positional_score = white_pst - black_pst
         else:
-            return black_material - white_material
+            material_score = black_material - white_material
+            positional_score = black_pst - white_pst
+        
+        return material_score + positional_score
     
     def _calculate_material(self, color: chess.Color) -> int:
         """
@@ -227,6 +516,30 @@ class MoveIntelligence:
         
         return total
     
+    def _calculate_pst_score(self, color: chess.Color) -> int:
+        """
+        Calculate piece-square table score for a given color.
+        
+        Args:
+            color: The color to calculate PST score for
+            
+        Returns:
+            Total PST score in centipawns
+        """
+        total_pst_score = 0
+        
+        # Iterate through all piece types
+        for piece_type in [chess.PAWN, chess.KNIGHT, chess.BISHOP, 
+                          chess.ROOK, chess.QUEEN, chess.KING]:
+            pieces = self.engine.board.pieces(piece_type, color)
+            
+            for square in pieces:
+                # Get PST value for this square and piece
+                pst_value = self._get_pst_value(square, piece_type, color)
+                total_pst_score += pst_value
+        
+        return total_pst_score
+    
     def get_position_evaluation(self) -> Dict[str, int]:
         """
         Get detailed evaluation of the current position.
@@ -237,10 +550,17 @@ class MoveIntelligence:
         white_material = self._calculate_material(chess.WHITE)
         black_material = self._calculate_material(chess.BLACK)
         
+        white_pst = self._calculate_pst_score(chess.WHITE)
+        black_pst = self._calculate_pst_score(chess.BLACK)
+        
         return {
             'white_material': white_material,
             'black_material': black_material,
             'material_difference': white_material - black_material,
+            'white_pst': white_pst,
+            'black_pst': black_pst,
+            'pst_difference': white_pst - black_pst,
+            'total_evaluation': self._evaluate_position(),
             'current_player_advantage': self._evaluate_position()
         }
     

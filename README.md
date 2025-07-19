@@ -13,9 +13,9 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🏆 **EVALUATION-BASED ENGINE - Material Intelligence Achieved!** 🏆
+🏆 **ADVANCED POSITIONAL ENGINE - Game Phase Awareness Complete!** 🏆
 
-The engine now features sophisticated position evaluation with material-based move selection, building upon the intelligent game state recognition!
+The engine now features sophisticated positional understanding with game phase detection and endgame specialization!
 
 ### Completed Features
 - ✅ Project structure and documentation setup
@@ -26,17 +26,18 @@ The engine now features sophisticated position evaluation with material-based mo
 - ✅ **UCI protocol implementation (Full compatibility!)**
 - ✅ **Nibbler.exe integration (Production validated!)**
 - ✅ **Intelligent move selection (Checkmate detection, stalemate avoidance!)**
-- ✅ **🆕 Material evaluation system (Strategic piece value assessment!)**
-- ✅ **🆕 Score-based move selection (Prioritizes valuable captures!)**
-- ⏳ Positional evaluation (Phase 3 - next: piece positioning, king safety)
+- ✅ **Material evaluation system (Strategic piece value assessment!)**
+- ✅ **🆕 Complete PST system (Document 08 - Universal → Piece-specific → Game phase aware!)**
 - ⏳ Advanced search algorithms (Phase 4 - minimax/alpha-beta)
+- ⏳ Opening book integration (Phase 5 - theoretical knowledge)
 
-### Latest Milestone: Material Evaluation System
-- **4-tier decision system**: Checkmate → Safety → Material evaluation → Fallback
-- **Standard piece values**: Queen=900, Rook=500, Bishop=330, Knight=320, Pawn=100 (centipawns)
-- **UCI evaluation output**: `info depth 1 score cp [score]` for GUI integration
-- **Real-world validation**: Successfully tested in Nibbler, reaches decisive endgames
-- **Performance characteristic**: Slightly conservative (excellent material preservation)
+### Latest Milestone: Complete PST Implementation (Document 08)
+- **Three-Phase Evolution**: Universal PST → Piece-specific PST → Game phase awareness
+- **Adaptive Strategy**: Engine changes behavior based on Opening/Middlegame/Endgame detection
+- **Endgame Excellence**: Pawn advancement (+200 near promotion), King centralization (+65 swing), Rook activity
+- **Phase Detection**: Material and piece-count based algorithm automatically detects game phase
+- **Strategic Depth**: Engine now shows understanding of when to activate pieces vs maintain safety
+- **Real-world Validation**: Excellent strategic play demonstrated in tournament games
 
 ## Core Goals
 
@@ -155,6 +156,29 @@ See `/docs/` folder for detailed development timeline and decision history.
 - Engine vs engine competition testing
 - Tournament-style automated play
 
+## Future Enhancement Parking Lot
+
+### En Passant Refinements (Later Development)
+- **Current Status**: Working excellently, demonstrated in game analysis
+- **Future Enhancements**: 
+  - Add checks to only take en passant if it's a "free piece"  
+  - Exception handling for structure-improving en passant (removes doubled pawns, trades isolated pawns)
+  - Monitor for any detrimental en passant moves in future games
+
+### Advanced Castling Logic (Later Development)
+- **Kingside vs Queenside**: Weight preferences based on position evaluation
+- **King Safety Integration**: Coordinate with upcoming king safety features
+- **Timing Optimization**: Further refine when castling is most beneficial
+
+### Piece Coordination Features (Advanced Development)
+- **Piece Pairing**: Bonuses for coordinated pieces working together
+- **Piece Proximity**: Distance-based cooperation bonuses between pieces
+- **Rank/File Alignment**: Rook and Queen coordination patterns
+- **Checkmate Pattern Recognition**: Rook positioning for common mate patterns
+- **Pawn Structure Analysis**: Isolated, doubled, passed pawn evaluation
+
+*Note: Items in parking lot are for future consideration after core positional and search features are complete.*
+
 ## Contributing
 
 This is primarily a learning project, but suggestions and educational discussions are welcome.
@@ -166,5 +190,5 @@ This is primarily a learning project, but suggestions and educational discussion
 ---
 
 **Last Updated**: July 19, 2025
-**Version**: 0.0.2-dev (INTELLIGENT ENGINE - Strategic Play!)
-**Status**: Tournament-ready with intelligent decision making and checkmate detection
+**Version**: 0.0.3-dev (POSITIONAL ENGINE - Game Phase Mastery!)
+**Status**: Tournament-ready with adaptive positional understanding and endgame expertise
