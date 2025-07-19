@@ -11,7 +11,7 @@ import sys
 import threading
 from typing import Optional, List
 import chess
-from slowmate.engine import SlowMateEngine
+from slowmate.intelligence import IntelligentSlowMateEngine
 
 
 class UCIInterface:
@@ -24,14 +24,14 @@ class UCIInterface:
     
     def __init__(self):
         """Initialize UCI interface with SlowMate engine."""
-        self.engine = SlowMateEngine()
+        self.engine = IntelligentSlowMateEngine()
         self.debug = False
         self.is_thinking = False
         self.search_thread = None
         
         # Engine identification
         self.engine_name = "SlowMate"
-        self.engine_version = "0.0.1-dev"
+        self.engine_version = "0.0.2-dev"
         self.author = "SlowMate Project"
     
     def run(self):
@@ -114,9 +114,8 @@ class UCIInterface:
         print(f"id name {self.engine_name} {self.engine_version}", flush=True)
         print(f"id author {self.author}", flush=True)
         
-        # TODO: Add engine options here when implemented
-        # print("option name Hash type spin default 32 min 1 max 1024", flush=True)
-        # print("option name Threads type spin default 1 min 1 max 8", flush=True)
+        # Engine options
+        print("option name Intelligence type check default true", flush=True)
         
         print("uciok", flush=True)
     
@@ -145,9 +144,25 @@ class UCIInterface:
         Args:
             args: Option setting arguments
         """
-        # TODO: Implement engine options in future phases
-        if self.debug:
-            print(f"info string SetOption not yet implemented: {' '.join(args)}", flush=True)
+        if len(args) >= 4 and args[0] == "name" and args[2] == "value":
+            option_name = args[1].lower()
+            option_value = args[3].lower()
+            
+            if option_name == "intelligence":
+                if option_value in ["true", "1", "on"]:
+                    self.engine.toggle_intelligence(True)
+                    if self.debug:
+                        print("info string Intelligence enabled", flush=True)
+                elif option_value in ["false", "0", "off"]:
+                    self.engine.toggle_intelligence(False)
+                    if self.debug:
+                        print("info string Intelligence disabled (random moves)", flush=True)
+            else:
+                if self.debug:
+                    print(f"info string Unknown option: {option_name}", flush=True)
+        else:
+            if self.debug:
+                print(f"info string Invalid setoption format: {' '.join(args)}", flush=True)
     
     def handle_ucinewgame(self):
         """Handle 'ucinewgame' command - prepare for new game."""
@@ -247,7 +262,7 @@ class UCIInterface:
         """
         try:
             if self.debug:
-                print("info string Starting move search", flush=True)
+                print("info string Starting intelligent move search", flush=True)
             
             # Get current legal moves
             legal_moves = list(self.engine.board.legal_moves)
@@ -260,20 +275,37 @@ class UCIInterface:
             if self.debug:
                 print(f"info string Found {len(legal_moves)} legal moves", flush=True)
             
-            # Use engine to select move (currently random)
+            # Use intelligent engine to select move
             selected_move = self.engine.select_move()
             
             if selected_move is None:
                 print("bestmove (none)", flush=True)
             else:
+                # Get move analysis for UCI info
+                if self.debug:
+                    reasoning = self.engine.intelligence.get_selection_reasoning(legal_moves, selected_move)
+                    print(f"info string {reasoning}", flush=True)
+                
                 # Convert to UCI format and send
                 move_uci = selected_move.uci()
                 print(f"bestmove {move_uci}", flush=True)
                 
                 if self.debug:
-                    # Show some analysis info
+                    # Show detailed analysis
                     move_san = self.engine.board.san(selected_move)
+                    analysis = self.engine.intelligence.get_move_analysis(selected_move)
+                    
                     print(f"info string Selected move: {move_san} ({move_uci})", flush=True)
+                    
+                    if analysis['is_checkmate']:
+                        print("info string This move delivers CHECKMATE!", flush=True)
+                    elif analysis['is_check']:
+                        print("info string This move gives CHECK", flush=True)
+                    
+                    if analysis['is_stalemate']:
+                        print("info string Warning: This move causes stalemate", flush=True)
+                    elif analysis['is_draw']:
+                        print("info string Warning: This move leads to a draw", flush=True)
         
         except Exception as e:
             if self.debug:

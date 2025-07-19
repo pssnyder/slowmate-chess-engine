@@ -13,9 +13,9 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🏆 **PRODUCTION READY - Real-World Validated!** 🏆
+🏆 **INTELLIGENT ENGINE - Strategic Decision Making!** 🏆
 
-The engine is fully operational in Nibbler.exe and successfully completes games with professional chess analysis software!
+The engine now features intelligent move selection with checkmate detection, stalemate avoidance, and strategic game state recognition!
 
 ### Completed Features
 - ✅ Project structure and documentation setup
@@ -25,8 +25,9 @@ The engine is fully operational in Nibbler.exe and successfully completes games 
 - ✅ Game state management (checkmate, stalemate, draw detection)
 - ✅ **UCI protocol implementation (Full compatibility!)**
 - ✅ **Nibbler.exe integration (Production validated!)**
-- ⏳ Basic move evaluation (Phase 3 - search algorithms)
-- ⏳ Basic search algorithm (Phase 3 - minimax/alpha-beta)
+- ✅ **Intelligent move selection (Checkmate detection, stalemate avoidance!)**
+- ⏳ Advanced search algorithms (Phase 3 - minimax/alpha-beta)
+- ⏳ Position evaluation functions (Phase 3 - tactical/positional assessment)
 
 ## Core Goals
 
@@ -92,29 +93,40 @@ python demo.py
 
 ### Engine API
 ```python
-from slowmate.engine import SlowMateEngine
+from slowmate.intelligence import IntelligentSlowMateEngine
 
-# Create new engine
-engine = SlowMateEngine()
+# Create intelligent engine
+engine = IntelligentSlowMateEngine()
 
-# Play random moves
+# Play intelligent moves with reasoning
 while not engine.is_game_over():
-    move = engine.play_random_move()
+    move = engine.play_intelligent_move()
+    reasoning = engine.get_move_reasoning()
     print(f"Engine played: {move}")
-    print(f"Status: {engine.get_game_status()}")
+    print(f"Strategy: {reasoning}")
 
 print(f"Game over: {engine.get_game_result()}")
 ```
 
+### Intelligence Testing
+```bash
+# Test intelligent move selection
+python test_intelligence.py
+
+# Toggle intelligence on/off via UCI
+echo "setoption name Intelligence value false" | slowmate.bat
+```
+
 ### Current Features
+- **Intelligent Move Selection**: Checkmate detection, stalemate/draw avoidance
 - **UCI Protocol**: Full compatibility with chess GUIs (Nibbler, Arena, etc.)
 - **Nibbler.exe Integration**: Production-validated, runs complete games
-- **Random Move Selection**: Selects legal moves randomly  
+- **Strategic Decision Making**: Prioritizes winning moves, avoids losing positions  
 - **Complete Game Support**: Plays from start to checkmate/stalemate/draw
-- **Real-time Transparency**: Shows legal move count and game status
+- **Real-time Analysis**: Detailed reasoning for every move selection
 - **Robust Game Logic**: Handles all chess rules via python-chess library
-- **Engine Testing Ready**: Can compete against other engines like Stockfish
-- **Professional Standards**: Industry-grade UCI compliance
+- **Engine Testing Ready**: Can compete intelligently against other engines
+- **Professional Standards**: Industry-grade UCI compliance with analysis output
 
 ## Development Roadmap
 
@@ -145,5 +157,5 @@ This is primarily a learning project, but suggestions and educational discussion
 ---
 
 **Last Updated**: July 19, 2025
-**Version**: 0.0.1-dev (PRODUCTION READY - Nibbler Validated!)
-**Status**: Ready for engine tournaments and real-world chess analysis
+**Version**: 0.0.2-dev (INTELLIGENT ENGINE - Strategic Play!)
+**Status**: Tournament-ready with intelligent decision making and checkmate detection
