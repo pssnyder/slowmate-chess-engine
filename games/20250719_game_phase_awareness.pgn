@@ -1,0 +1,14 @@
+[Event "?"]
+[Site "?"]
+[Date "2025.07.19"]
+[Round "?"]
+[White "White"]
+[Black "Black"]
+[Result "1-0"]
+
+1. e4 d5 2. Nc3 dxe4 3. Nxe4 Qxd2+ 4. Bxd2 e6 5. Nf3 f5 6. Bd3 fxe4 7. Bxe4 c5
+8. Bxb7 Bxb7 9. O-O Bxf3 10. Qxf3 g5 11. Qxa8 Kd7 12. Qxb8 Kc6 13. Qxf8 Kd5 14.
+Qxg8 Rxg8 15. Bxg5 Rxg5 16. f4 Rxg2+ 17. Kxg2 Kc6 18. c4 Kb7 19. b4 cxb4 20. h4
+Ka8 21. f5 exf5 22. Rxf5 Kb8 23. c5 Ka8 24. a4 bxa3 25. c6 Kb8 26. c7+ Kxc7 27.
+h5 Kc8 28. h6 Kb8 29. Rxa3 Ka8 30. Rxa7+ Kxa7 31. Kf3 Ka8 32. Ke4 Kb8 33. Rf7
+Ka8 34. Rxh7 Kb8 35. Rd7 Ka8 36. h7 Kb8 37. h8=Q# 1-0

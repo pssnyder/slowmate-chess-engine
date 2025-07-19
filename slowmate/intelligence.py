@@ -487,15 +487,21 @@ class MoveIntelligence:
         white_pst = self._calculate_pst_score(chess.WHITE)
         black_pst = self._calculate_pst_score(chess.BLACK)
         
+        # King safety evaluation
+        white_king_safety = self._calculate_king_safety(chess.WHITE)
+        black_king_safety = self._calculate_king_safety(chess.BLACK)
+        
         # Combine scores from current player's perspective
         if self.engine.board.turn == chess.WHITE:
             material_score = white_material - black_material
             positional_score = white_pst - black_pst
+            king_safety_score = white_king_safety - black_king_safety
         else:
             material_score = black_material - white_material
             positional_score = black_pst - white_pst
+            king_safety_score = black_king_safety - white_king_safety
         
-        return material_score + positional_score
+        return material_score + positional_score + king_safety_score
     
     def _calculate_material(self, color: chess.Color) -> int:
         """
@@ -540,6 +546,141 @@ class MoveIntelligence:
         
         return total_pst_score
     
+    def _calculate_king_safety(self, color: chess.Color) -> int:
+        """
+        Calculate king safety evaluation for the given color.
+        
+        Args:
+            color: The color to evaluate king safety for
+            
+        Returns:
+            King safety score in centipawns (positive = safer)
+        """
+        king_safety_score = 0
+        
+        # 1. Castling Rights Evaluation (small bonus for maintaining rights)
+        castling_rights_bonus = self._evaluate_castling_rights(color)
+        king_safety_score += castling_rights_bonus
+        
+        # 2. Castling Status Evaluation (larger bonus for having castled)
+        castling_status_bonus = self._evaluate_castling_status(color)
+        king_safety_score += castling_status_bonus
+        
+        # 3. King Pawn Shield Evaluation (bonus for pawns protecting king)
+        pawn_shield_bonus = self._evaluate_king_pawn_shield(color)
+        king_safety_score += pawn_shield_bonus
+        
+        return king_safety_score
+    
+    def _evaluate_castling_rights(self, color: chess.Color) -> int:
+        """
+        Evaluate castling rights (small bonus for maintaining ability to castle).
+        
+        Args:
+            color: The color to evaluate
+            
+        Returns:
+            Castling rights bonus in centipawns
+        """
+        bonus = 0
+        board = self.engine.board
+        
+        if color == chess.WHITE:
+            # Small bonus for maintaining castling rights
+            if board.has_kingside_castling_rights(chess.WHITE):
+                bonus += 10  # Small bonus for kingside castling rights
+            if board.has_queenside_castling_rights(chess.WHITE):
+                bonus += 8   # Slightly smaller bonus for queenside (often less safe)
+        else:
+            if board.has_kingside_castling_rights(chess.BLACK):
+                bonus += 10
+            if board.has_queenside_castling_rights(chess.BLACK):
+                bonus += 8
+        
+        return bonus
+    
+    def _evaluate_castling_status(self, color: chess.Color) -> int:
+        """
+        Evaluate whether the king has castled (larger bonus for having castled).
+        This bonus is larger than castling rights to ensure action > preparation.
+        
+        Args:
+            color: The color to evaluate
+            
+        Returns:
+            Castling status bonus in centipawns
+        """
+        board = self.engine.board
+        
+        # Determine if king has castled by checking king position and move history
+        king_square = board.king(color)
+        
+        if color == chess.WHITE:
+            # White king starts on e1
+            if king_square == chess.G1:  # Kingside castling
+                return 25  # Larger bonus than castling rights (10)
+            elif king_square == chess.C1:  # Queenside castling
+                return 20  # Still good, but kingside often safer
+        else:
+            # Black king starts on e8
+            if king_square == chess.G8:  # Kingside castling
+                return 25
+            elif king_square == chess.C8:  # Queenside castling
+                return 20
+        
+        return 0  # King hasn't castled
+    
+    def _evaluate_king_pawn_shield(self, color: chess.Color) -> int:
+        """
+        Evaluate the pawn shield in front of the king.
+        Bonus for having pawns in the three squares directly in front of the king.
+        
+        Args:
+            color: The color to evaluate
+            
+        Returns:
+            Pawn shield bonus in centipawns
+        """
+        board = self.engine.board
+        king_square = board.king(color)
+        
+        if king_square is None:
+            return 0  # No king found (shouldn't happen in valid positions)
+        
+        king_file = chess.square_file(king_square)
+        king_rank = chess.square_rank(king_square)
+        
+        shield_bonus = 0
+        
+        # Determine the rank in front of the king
+        if color == chess.WHITE:
+            # White king looks "up" the board (increasing rank)
+            shield_rank = king_rank + 1
+            if shield_rank > 7:  # Can't have pawns beyond rank 8
+                return 0
+        else:
+            # Black king looks "down" the board (decreasing rank)
+            shield_rank = king_rank - 1
+            if shield_rank < 0:  # Can't have pawns below rank 1
+                return 0
+        
+        # Check the three files: left, center, right of king
+        for file_offset in [-1, 0, 1]:
+            check_file = king_file + file_offset
+            
+            # Skip if file is off the board
+            if check_file < 0 or check_file > 7:
+                continue
+                
+            check_square = chess.square(check_file, shield_rank)
+            piece = board.piece_at(check_square)
+            
+            # Bonus for having our own pawn in front of king
+            if piece and piece.piece_type == chess.PAWN and piece.color == color:
+                shield_bonus += 8  # Moderate bonus per protecting pawn
+        
+        return shield_bonus
+    
     def get_position_evaluation(self) -> Dict[str, int]:
         """
         Get detailed evaluation of the current position.
@@ -553,6 +694,9 @@ class MoveIntelligence:
         white_pst = self._calculate_pst_score(chess.WHITE)
         black_pst = self._calculate_pst_score(chess.BLACK)
         
+        white_king_safety = self._calculate_king_safety(chess.WHITE)
+        black_king_safety = self._calculate_king_safety(chess.BLACK)
+        
         return {
             'white_material': white_material,
             'black_material': black_material,
@@ -560,6 +704,9 @@ class MoveIntelligence:
             'white_pst': white_pst,
             'black_pst': black_pst,
             'pst_difference': white_pst - black_pst,
+            'white_king_safety': white_king_safety,
+            'black_king_safety': black_king_safety,
+            'king_safety_difference': white_king_safety - black_king_safety,
             'total_evaluation': self._evaluate_position(),
             'current_player_advantage': self._evaluate_position()
         }
