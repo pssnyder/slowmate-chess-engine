@@ -2,7 +2,9 @@
 
 **Date**: July 19, 2025  
 **Status**: ✅ Complete  
-**Phase**: Basic Game Intelligence
+**Phase**: Basic Game Intelligence  
+**Version**: 0.0.05  
+**Engine ID**: slowmate_0.0.05_intelligent_moves  
 
 ## Objectives ✅
 1. Implement intelligent move selection to replace pure random selection

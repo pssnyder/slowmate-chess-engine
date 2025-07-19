@@ -1,8 +1,10 @@
 # 02 - Architecture Decisions
 
 **Date**: July 19, 2025  
-**Status**: Complete  
-**Phase**: Architecture Definition
+**Status**: ✅ Complete  
+**Phase**: Architecture Definition  
+**Version**: 0.0.02 (included in basic engine)  
+**Engine ID**: slowmate_0.0.02_basic_engine  
 
 ## Decisions Made
 

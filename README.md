@@ -13,25 +13,39 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🏆 **ADVANCED POSITIONAL ENGINE - Game Phase Awareness Complete!** 🏆
+🏆 **KING SAFETY ENGINE - Comprehensive Strategic Intelligence!** 🏆
 
-The engine now features sophisticated positional understanding with game phase detection and endgame specialization!
+The engine now features sophisticated king safety evaluation alongside advanced positional understanding!
+
+### Current Version: 0.0.08 (King Safety)
+- **Engine ID**: slowmate_0.0.08_king_safety
+- **Latest Feature**: King safety evaluation system
+- **Previous Version**: 0.0.07 (Game Phase Awareness)
 
 ### Completed Features
-- ✅ Project structure and documentation setup
+- ✅ **🆕 King Safety Evaluation (Document 09 - Version 0.0.08)**: Castling rights, castling status, and pawn shield analysis!
+- ✅ **Complete PST system (Document 08 - Version 0.0.07)**: Universal → Piece-specific → Game phase aware!
+- ✅ **Material evaluation system (Document 07 - Version 0.0.06)**: Strategic piece value assessment!
+- ✅ **Intelligent move selection (Document 06 - Version 0.0.05)**: Checkmate detection, stalemate avoidance!
+- ✅ **Nibbler.exe integration (Document 05 - Version 0.0.04)**: Production validated!
+- ✅ **UCI protocol implementation (Document 04 - Version 0.0.03)**: Full compatibility!
+- ✅ **Basic engine implementation (Document 03 - Version 0.0.02)**: Legal move generation and game completion
+- ✅ **Project setup (Document 01 - Version 0.0.01)**: Foundation and architecture
 - ✅ Basic chess board representation (via python-chess)
 - ✅ Move generation (20 legal moves from starting position)
 - ✅ Legal move validation (automatic via python-chess)
 - ✅ Game state management (checkmate, stalemate, draw detection)
-- ✅ **UCI protocol implementation (Full compatibility!)**
-- ✅ **Nibbler.exe integration (Production validated!)**
-- ✅ **Intelligent move selection (Checkmate detection, stalemate avoidance!)**
-- ✅ **Material evaluation system (Strategic piece value assessment!)**
-- ✅ **🆕 Complete PST system (Document 08 - Universal → Piece-specific → Game phase aware!)**
 - ⏳ Advanced search algorithms (Phase 4 - minimax/alpha-beta)
 - ⏳ Opening book integration (Phase 5 - theoretical knowledge)
 
-### Latest Milestone: Complete PST Implementation (Document 08)
+### Latest Milestone: King Safety Implementation (Document 09 - Version 0.0.08)
+- **Castling Rights Evaluation**: Small bonus for maintaining castling ability (+10/+8)
+- **Castling Status Evaluation**: Larger bonus for having castled (+25/+20) - Action > Preparation
+- **Pawn Shield Evaluation**: Bonus for pawns protecting king (+8 per pawn, up to 3)
+- **Strategic Integration**: King safety influences move selection without overriding tactics
+- **Balanced Design**: Enhances strategic sophistication while maintaining tactical sharpness
+
+### Previous Milestone: Complete PST Implementation (Document 08 - Version 0.0.07)
 - **Three-Phase Evolution**: Universal PST → Piece-specific PST → Game phase awareness
 - **Adaptive Strategy**: Engine changes behavior based on Opening/Middlegame/Endgame detection
 - **Endgame Excellence**: Pawn advancement (+200 near promotion), King centralization (+65 swing), Rook activity
@@ -189,6 +203,17 @@ This is primarily a learning project, but suggestions and educational discussion
 
 ---
 
-**Last Updated**: July 19, 2025
-**Version**: 0.0.3-dev (POSITIONAL ENGINE - Game Phase Mastery!)
-**Status**: Tournament-ready with adaptive positional understanding and endgame expertise
+**Last Updated**: July 19, 2025  
+**Version**: 0.0.08 (King Safety Engine)  
+**Engine ID**: slowmate_0.0.08_king_safety  
+**Status**: Tournament-ready with king safety evaluation and comprehensive strategic intelligence  
+
+## Version History
+- **0.0.08**: King Safety Implementation (castling rights, castling status, pawn shield)
+- **0.0.07**: Game Phase Awareness (opening/middlegame/endgame PST adaptation)  
+- **0.0.06**: Material Evaluation System (strategic piece value assessment)
+- **0.0.05**: Intelligent Move Selection (checkmate detection, stalemate avoidance)
+- **0.0.04**: UCI Production Integration (Nibbler.exe validated)
+- **0.0.03**: UCI Protocol Implementation (full UCI compliance)
+- **0.0.02**: Basic Engine Implementation (legal move generation, game completion)
+- **0.0.01**: Project Setup and Foundation (documentation, architecture)
