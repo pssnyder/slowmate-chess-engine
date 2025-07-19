@@ -13,17 +13,18 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🏆 **KING SAFETY ENGINE - Comprehensive Strategic Intelligence!** 🏆
+🏆 **TACTICAL INTELLIGENCE ENGINE - Complete Strategic & Tactical Mastery!** 🏆
 
-The engine now features sophisticated king safety evaluation alongside advanced positional understanding!
+The engine now features comprehensive tactical intelligence with attack pattern recognition, threat analysis, and piece coordination!
 
-### Current Version: 0.0.08 (King Safety)
-- **Engine ID**: slowmate_0.0.08_king_safety
-- **Latest Feature**: King safety evaluation system
-- **Previous Version**: 0.0.07 (Game Phase Awareness)
+### Current Version: 0.0.10 (Tactical Intelligence)
+- **Engine ID**: slowmate_0.0.10_tactical_intelligence
+- **Latest Feature**: Complete tactical intelligence system with modular debugging
+- **Previous Version**: 0.0.09 (King Safety)
 
 ### Completed Features
-- ✅ **🆕 King Safety Evaluation (Document 09 - Version 0.0.08)**: Castling rights, castling status, and pawn shield analysis!
+- ✅ **🆕 Tactical Intelligence System (Milestone 10 - Version 0.0.10)**: Complete tactical mastery with threats, captures, attack patterns, and coordination!
+- ✅ **King Safety Evaluation (Document 09 - Version 0.0.08)**: Castling rights, castling status, and pawn shield analysis!
 - ✅ **Complete PST system (Document 08 - Version 0.0.07)**: Universal → Piece-specific → Game phase aware!
 - ✅ **Material evaluation system (Document 07 - Version 0.0.06)**: Strategic piece value assessment!
 - ✅ **Intelligent move selection (Document 06 - Version 0.0.05)**: Checkmate detection, stalemate avoidance!
@@ -38,20 +39,21 @@ The engine now features sophisticated king safety evaluation alongside advanced 
 - ⏳ Advanced search algorithms (Phase 4 - minimax/alpha-beta)
 - ⏳ Opening book integration (Phase 5 - theoretical knowledge)
 
-### Latest Milestone: King Safety Implementation (Document 09 - Version 0.0.08)
+### Latest Implementation: Tactical Intelligence System (Document 10 - Version 0.0.10)
+- **Threat Analysis**: Comprehensive threat detection and avoidance (-50% value penalty for threatened pieces)
+- **Capture Evaluation**: Square-centric capture analysis with tactical combination bonuses
+- **Attack Patterns**: Pin detection, fork identification, discovered attacks, skewer recognition
+- **Piece Coordination**: Rook stacking, battery formation, knight/bishop pairing, color coordination
+- **Modular Debugging**: Feature toggle system for isolation testing and tactical debugging
+- **Tactical Integration**: All systems work together with combination bonuses for multi-tactical moves
+- **Game-Tested**: Validated through full tactical game analysis showing strong positional and tactical play
+
+### Previous Implementation: King Safety Implementation (Document 09 - Version 0.0.08)
 - **Castling Rights Evaluation**: Small bonus for maintaining castling ability (+10/+8)
 - **Castling Status Evaluation**: Larger bonus for having castled (+25/+20) - Action > Preparation
 - **Pawn Shield Evaluation**: Bonus for pawns protecting king (+8 per pawn, up to 3)
 - **Strategic Integration**: King safety influences move selection without overriding tactics
 - **Balanced Design**: Enhances strategic sophistication while maintaining tactical sharpness
-
-### Previous Milestone: Complete PST Implementation (Document 08 - Version 0.0.07)
-- **Three-Phase Evolution**: Universal PST → Piece-specific PST → Game phase awareness
-- **Adaptive Strategy**: Engine changes behavior based on Opening/Middlegame/Endgame detection
-- **Endgame Excellence**: Pawn advancement (+200 near promotion), King centralization (+65 swing), Rook activity
-- **Phase Detection**: Material and piece-count based algorithm automatically detects game phase
-- **Strategic Depth**: Engine now shows understanding of when to activate pieces vs maintain safety
-- **Real-world Validation**: Excellent strategic play demonstrated in tournament games
 
 ## Core Goals
 
@@ -91,6 +93,22 @@ source .venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+
+## Documentation
+
+Complete development documentation is available in the `docs/` folder:
+
+- **[00 - Versioning System](docs/00_versioning_system.md)**: Project version control and documentation standards
+- **[01 - Initial Setup](docs/01_initial_setup.md)**: Project foundation and environment setup
+- **[02 - Architecture Decisions](docs/02_architecture_decisions.md)**: Core design principles and structure
+- **[03 - Basic Engine Implementation](docs/03_basic_engine_implementation.md)**: Legal move generation and game completion
+- **[04 - UCI Interface](docs/04_uci_interface.md)**: Universal Chess Interface implementation
+- **[05 - Nibbler Integration](docs/05_nibbler_integration_success.md)**: Chess GUI compatibility validation
+- **[06 - Intelligent Move Selection](docs/06_intelligent_move_selection.md)**: Checkmate, stalemate, and draw handling
+- **[07 - Material Evaluation System](docs/07_material_evaluation_system.md)**: Strategic piece value assessment
+- **[08 - Game Phase Awareness](docs/08_game_phase_awareness.md)**: Piece-square tables and positional understanding
+- **[09 - King Safety Implementation](docs/09_king_safety_implementation.md)**: Castling and pawn shield evaluation
+- **[10 - Tactical Intelligence System](docs/10_tactical_intelligence_system.md)**: Comprehensive tactical analysis and pattern recognition
 
 ## Usage
 

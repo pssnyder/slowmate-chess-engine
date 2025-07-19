@@ -59,8 +59,10 @@ def analyze_tactical_integration_bug():
     bishop_g2_threatened = engine.intelligence._is_piece_under_threat(chess.G2, chess.WHITE)
     print(f"   Bishop on g2 under threat: {bishop_g2_threatened}")
     
-    # Check available captures
-    print(f"   White winning captures: {eval_details['white_winning_captures']}")
+    # Check available captures - updated for square-centric analysis
+    print(f"   White significant squares: {eval_details['white_significant_squares']}")
+    print(f"   White controlled squares: {eval_details['white_controlled_squares']}")
+    print(f"   White threatened pieces: {eval_details['white_threatened_pieces']}")
     print(f"   White captures score: {eval_details['white_captures']}")
     
     # Analyze the key moves
