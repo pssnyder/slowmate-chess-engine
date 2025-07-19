@@ -13,9 +13,9 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🎯 **Phase 1 Complete - Basic Engine Functional!** 🎯
+🚀 **Phase 2 Complete - UCI Compatible Engine!** 🚀
 
-The engine successfully plays complete chess games using random move selection.
+The engine is now fully UCI-compatible and ready for integration with chess GUIs like Nibbler, Arena, and testing against other engines like Stockfish!
 
 ### Completed Features
 - ✅ Project structure and documentation setup
@@ -23,9 +23,9 @@ The engine successfully plays complete chess games using random move selection.
 - ✅ Move generation (20 legal moves from starting position)
 - ✅ Legal move validation (automatic via python-chess)
 - ✅ Game state management (checkmate, stalemate, draw detection)
-- ⏳ Basic move evaluation (Phase 2 - search algorithms)
-- ⏳ UCI protocol implementation (Phase 2 - interface)
-- ⏳ Basic search algorithm (Phase 2 - minimax/alpha-beta)
+- ✅ **UCI protocol implementation (Full compatibility!)**
+- ⏳ Basic move evaluation (Phase 3 - search algorithms)
+- ⏳ Basic search algorithm (Phase 3 - minimax/alpha-beta)
 
 ## Core Goals
 
@@ -68,6 +68,21 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Connect to Nibbler.exe
+1. Open Nibbler.exe
+2. Add engine: Browse to `slowmate.bat` in the project folder
+3. Engine will appear as "SlowMate 0.0.1-dev"
+4. Start analyzing positions or play games!
+
+### Manual UCI Testing
+```bash
+# Test UCI protocol
+echo "uci" | slowmate.bat
+
+# Run comprehensive test
+python test_uci.py
+```
+
 ### Basic Demo
 Run a complete random game:
 ```bash
@@ -91,10 +106,12 @@ print(f"Game over: {engine.get_game_result()}")
 ```
 
 ### Current Features
-- **Random Move Selection**: Selects legal moves randomly
+- **UCI Protocol**: Full compatibility with chess GUIs (Nibbler, Arena, etc.)
+- **Random Move Selection**: Selects legal moves randomly  
 - **Complete Game Support**: Plays from start to checkmate/stalemate/draw
 - **Real-time Transparency**: Shows legal move count and game status
 - **Robust Game Logic**: Handles all chess rules via python-chess library
+- **Engine Testing Ready**: Can compete against other engines like Stockfish
 
 ## Development Roadmap
 
@@ -119,5 +136,5 @@ This is primarily a learning project, but suggestions and educational discussion
 ---
 
 **Last Updated**: July 19, 2025
-**Version**: 0.0.1-dev (Phase 1 Complete)
-**Next Steps**: See `/docs/04_uci_interface.md` for Phase 2 planning
+**Version**: 0.0.1-dev (Phase 2 Complete - UCI Ready!)
+**Next Steps**: See `UCI_Integration_Guide.md` for Nibbler setup instructions
