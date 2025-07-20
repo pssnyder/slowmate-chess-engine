@@ -23,6 +23,7 @@ from .opening_book import OpeningBook
 from .opening_weights import OpeningWeights
 from .endgame_patterns import EndgamePatterns
 from .endgame_tactics import EndgameTactics
+from .middlegame_tactics import MiddlegameTactics
 
 
 class KnowledgeBase:
@@ -47,6 +48,7 @@ class KnowledgeBase:
         self.opening_weights = OpeningWeights(f"{data_dir}/openings")
         self.endgame_patterns = EndgamePatterns(f"{data_dir}/endgames")
         self.endgame_tactics = EndgameTactics(f"{data_dir}/endgames")
+        self.middlegame_tactics = MiddlegameTactics(f"{data_dir}/middlegame/tactics.json")
         
         # Performance tracking
         self.query_count = 0
@@ -54,7 +56,8 @@ class KnowledgeBase:
         self.hit_counts = {
             'opening_book': 0,
             'endgame_patterns': 0,
-            'endgame_tactics': 0
+            'endgame_tactics': 0,
+            'middlegame_tactics': 0
         }
     
     def get_knowledge_move(self, board: Board, game_moves: Optional[List[Move]] = None) -> Optional[Tuple[Move, str]]:
@@ -72,7 +75,7 @@ class KnowledgeBase:
         self.query_count += 1
         
         try:
-            # Priority 1: Check for immediate endgame tactics
+            # Priority 1: Check for immediate endgame tactics (forced mate)
             tactical_move = self.endgame_tactics.get_tactical_move(board)
             if tactical_move:
                 self.hit_counts['endgame_tactics'] += 1
@@ -89,7 +92,15 @@ class KnowledgeBase:
                     self.hit_counts['opening_book'] += 1
                     return opening_move, 'opening_book'
             
-            # Priority 3: Check strategic endgame patterns
+            # Priority 3: Check middlegame tactics (discovered patterns)
+            middlegame_move = self.middlegame_tactics.get_tactical_move(board)
+            if middlegame_move:
+                # Convert from dict format to move
+                move = chess.Move.from_uci(middlegame_move['move'])
+                self.hit_counts['middlegame_tactics'] += 1
+                return move, 'middlegame_tactics'
+            
+            # Priority 4: Check strategic endgame patterns
             strategic_move = self.endgame_patterns.get_strategic_move(board)
             if strategic_move:
                 self.hit_counts['endgame_patterns'] += 1
@@ -124,7 +135,8 @@ class KnowledgeBase:
                 'opening_book': self.opening_book.get_statistics(),
                 'opening_weights': self.opening_weights.get_statistics(),
                 'endgame_patterns': self.endgame_patterns.get_statistics(),
-                'endgame_tactics': self.endgame_tactics.get_statistics()
+                'endgame_tactics': self.endgame_tactics.get_statistics(),
+                'middlegame_tactics': self.middlegame_tactics.get_statistics()
             }
         }
     

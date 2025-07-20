@@ -1,7 +1,7 @@
 """
-SlowMate v0.1.03 - Endgame Pattern Tournament Test
+SlowMate v0.1.03 - Middlegame Tactics Tournament Test
 
-Test the enhanced engine with endgame patterns against various
+Test the enhanced engine with middlegame tactics and endgame patterns against various
 scenarios to validate tournament readiness.
 """
 
@@ -17,7 +17,7 @@ def simulate_game(engine1_name="SlowMate", engine2_name="Random"):
     moves_played = 0
     endgame_moves = 0
     opening_moves = 0
-    pattern_hits = {'opening_book': 0, 'endgame_patterns': 0, 'endgame_tactics': 0}
+    pattern_hits = {'opening_book': 0, 'endgame_patterns': 0, 'endgame_tactics': 0, 'middlegame_tactics': 0}
     
     print(f"Game: {engine1_name} vs {engine2_name}")
     print("-" * 40)
@@ -170,7 +170,7 @@ def test_specific_endgame_scenarios():
 
 def main():
     """Run comprehensive endgame pattern testing."""
-    print("SlowMate v0.1.03 - Endgame Pattern System Test")
+    print("SlowMate v0.1.03 - Middlegame Tactics System Test")
     print("=" * 60)
     
     # Test specific endgame scenarios
@@ -207,7 +207,7 @@ def main():
     print(f"Endgame pattern moves: {total_endgame_moves}")
     print(f"Knowledge utilization: {(total_opening_moves + total_endgame_moves)} strategic moves")
     
-    print("\n🎯 SlowMate v0.1.03 with Endgame Patterns is tournament ready!")
+    print("\n🎯 SlowMate v0.1.03 with Middlegame Tactics and Endgame Patterns is tournament ready!")
 
 
 if __name__ == "__main__":

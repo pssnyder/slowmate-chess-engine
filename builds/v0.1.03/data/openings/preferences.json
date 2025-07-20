@@ -1,0 +1,66 @@
+{
+  "white_preferences": {
+    "london_system": {
+      "weight": 100,
+      "key_moves": ["d4", "Bf4", "e3", "Nf3", "Bd3", "Nbd2", "c3"],
+      "description": "Solid system opening with early Bf4 development"
+    },
+    "queens_gambit": {
+      "weight": 90,
+      "key_moves": ["d4", "c4", "Nc3", "e3", "Nf3", "Bg5"],
+      "description": "Classical central control with c4 pawn sacrifice offer"
+    },
+    "vienna_game": {
+      "weight": 80,
+      "key_moves": ["e4", "Nc3", "f4", "d3", "Nf3", "Bb5"],
+      "description": "Aggressive development with early Nc3 and f4 push"
+    }
+  },
+  
+  "black_preferences": {
+    "caro_kann": {
+      "weight": 100,
+      "key_moves": ["c6", "d5", "Bf5", "e6", "Nd7", "Ngf6"],
+      "description": "Solid defense with early c6 support for d5 advance"
+    },
+    "french_defense": {
+      "weight": 90,
+      "key_moves": ["e6", "d5", "c5", "Nc6", "Bd7", "Be7"],
+      "description": "Central pawn chain with e6-d5 structure"
+    },
+    "dutch_defense": {
+      "weight": 85,
+      "key_moves": ["f5", "d6", "e6", "Nf6", "Be7", "O-O"],
+      "description": "Aggressive kingside setup with f5 pawn advance"
+    },
+    "kings_indian": {
+      "weight": 80,
+      "key_moves": ["Nf6", "g6", "Bg7", "d6", "O-O", "e5"],
+      "description": "Hypermodern fianchetto setup with counterattacking potential"
+    }
+  },
+  
+  "opening_transitions": {
+    "london_to_colle": {
+      "trigger_moves": ["d4", "Nf3", "e3", "Bd3"],
+      "weight_adjustment": 1.2,
+      "description": "London System can transition to Colle System"
+    },
+    "queens_gambit_accepted": {
+      "trigger_moves": ["d4", "c4", "dxc4"],
+      "weight_adjustment": 1.1,
+      "description": "Accept Queens Gambit for active piece play"
+    },
+    "vienna_to_kings_gambit": {
+      "trigger_moves": ["e4", "Nc3", "f4"],
+      "weight_adjustment": 1.3,
+      "description": "Vienna can transpose to aggressive Kings Gambit"
+    }
+  },
+  
+  "anti_repetition": {
+    "variety_factor": 0.85,
+    "memory_games": 10,
+    "description": "Reduce preference for recently played openings by 15%"
+  }
+}

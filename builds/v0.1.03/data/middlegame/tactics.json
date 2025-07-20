@@ -1,0 +1,75 @@
+{
+  "tactics": {
+    "fad472ebc1e7009652ea5b2f85888333": [
+      {
+        "move": "b1c3",
+        "move_san": "Nc3",
+        "pv": [
+          "b1c3"
+        ],
+        "pv_san": [
+          "Nc3"
+        ],
+        "confidence_weight": 1.0,
+        "eval_improvement": 1732.0,
+        "pattern_type": "tactical",
+        "discovered_in_game": "ee7a85b7142f35b5",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "last_updated": "ee7a85b7142f35b5",
+        "mate_in": null
+      }
+    ],
+    "66257c1b81f53932d33433ac843dd891": [
+      {
+        "move": "d2c3",
+        "move_san": "dxc3",
+        "pv": [
+          "d2c3"
+        ],
+        "pv_san": [
+          "dxc3"
+        ],
+        "confidence_weight": 1.0,
+        "eval_improvement": 2415.0,
+        "pattern_type": "tactical",
+        "discovered_in_game": "ee7a85b7142f35b5",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "last_updated": "ee7a85b7142f35b5",
+        "mate_in": null
+      }
+    ],
+    "a68f28d368cabd27ca8d2c03e99f92d5": [
+      {
+        "move": "f1g2",
+        "move_san": "Bxg2",
+        "pv": [
+          "f1g2"
+        ],
+        "pv_san": [
+          "Bxg2"
+        ],
+        "confidence_weight": 1.0,
+        "eval_improvement": 729.0,
+        "pattern_type": "tactical",
+        "discovered_in_game": "ee7a85b7142f35b5",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "last_updated": "ee7a85b7142f35b5",
+        "mate_in": null
+      }
+    ]
+  },
+  "checkmates": {},
+  "metadata": {
+    "version": "0.1.03",
+    "total_positions": 3,
+    "session_stats": {
+      "moves_added": 3,
+      "patterns_discovered": 0,
+      "confidence_updates": 0,
+      "checkmates_stored": 0
+    }
+  }
+}
