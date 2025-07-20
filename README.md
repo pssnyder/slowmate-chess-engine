@@ -14,15 +14,20 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🎯 **MIDDLEGAME TACTICS REVOLUTION - Self-Learning Chess AI!** 🎯
+⚡ **MOVE ORDERING REVOLUTION - High-Performance Search Engine!** ⚡
 
-**MAJOR MILESTONE**: SlowMate has achieved a complete self-learning tactical system that analyzes historical games, discovers significant moves, and builds a confidence-weighted middlegame tactics library!
+**ACTIVE DEVELOPMENT**: SlowMate v0.2.01 is implementing advanced move ordering, transposition tables, killer moves, and search optimization for dramatic performance improvements!
 
-### Current Version: 0.1.03 (Middlegame Tactics & Game Analysis) ✅ **BREAKTHROUGH ACHIEVED**  
-- **Engine ID**: slowmate_v0.1.03_middlegame_tactics_self_learning
-- **Latest Achievement**: **Revolutionary game analysis utility and middlegame tactics library** (July 20, 2025)
+### Current Version: 0.2.01-dev (Move Ordering & Search Efficiency) 🚧 **IN ACTIVE DEVELOPMENT**
+- **Engine ID**: slowmate_v0.2.01_move_ordering_search_optimization
+- **Development Focus**: **Advanced move ordering, transposition tables, killer moves, search efficiency** (Target: July 21, 2025)
+- **Performance Goal**: 60-80% reduction in nodes searched, 2x faster tactical solving
+- **Status**: **PHASE 1** - Core move ordering implementation 🔧
+
+### Stable Foundation: 0.1.03 (Middlegame Tactics & Game Analysis) ✅ **COMPLETED**
+- **Achievement**: Revolutionary game analysis utility and self-learning middlegame tactics system
 - **Performance**: 3 discovered tactical patterns with 100% confidence, 1,625 cp average improvement
-- **Status**: **READY FOR v0.2.0** - Complete move library across all game phases ✅
+- **Foundation**: Proven self-learning architecture ready for search enhancements
 
 ## Implemented Features (Chronological Order)
 
@@ -178,11 +183,13 @@ This is primarily a learning project, but suggestions and educational discussion
 ---
 
 **Last Updated**: July 20, 2025  
-**Current Version**: 0.1.02 (Knowledge Base Implementation)  
-**Engine ID**: slowmate_v0.1.02_knowledge_base_opening_book  
-**Status**: Phase 1 Complete - Opening book infrastructure fully operational
+**Current Version**: 0.2.01-dev (Move Ordering & Search Efficiency)  
+**Engine ID**: slowmate_v0.2.01_move_ordering_search_optimization  
+**Status**: Active Development - Phase 1: Core move ordering implementation
 
 ## Version History
+- **0.2.01-dev**: Move Ordering & Search Efficiency (transposition tables, killer moves, history heuristics, MVV-LVA)
+- **0.1.03**: Self-Learning Middlegame Tactics (game analysis utility, confidence-weighted tactics, pattern discovery)
 - **0.1.02**: Knowledge Base Implementation (opening book, knowledge coordinator, endgame framework)
 - **0.1.01**: Tactical Enhancements (SEE-based evaluation, tactical revolution, pawn structure)
 - **0.1.0**: Tournament Victory (first competitive win, baseline strength established)
