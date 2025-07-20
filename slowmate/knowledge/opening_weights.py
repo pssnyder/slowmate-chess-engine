@@ -16,7 +16,7 @@ Features:
 
 import json
 import random
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 import chess
 from chess import Board, Move
 
@@ -365,4 +365,14 @@ class OpeningWeights:
             'move_number': len(board.move_stack) // 2 + 1,
             'white_preferences': list(self.white_prefs.keys()),
             'black_preferences': list(self.black_prefs.keys())
+        }
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get opening weights system statistics."""
+        return {
+            'white_preferences': len(self.white_prefs),
+            'black_preferences': len(self.black_prefs),
+            'game_history_size': len(self.game_history),
+            'max_history': self.max_history,
+            'data_loaded': bool(self.white_prefs or self.black_prefs)
         }

@@ -6,7 +6,7 @@
     "c4": 10
   },
   
-  "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3": {
+  "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -": {
     "e5": 30,
     "c5": 25,
     "e6": 20,
@@ -14,7 +14,7 @@
     "d6": 10
   },
   
-  "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3": {
+  "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq -": {
     "d5": 35,
     "Nf6": 30,
     "e6": 20,

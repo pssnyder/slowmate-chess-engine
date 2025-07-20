@@ -106,19 +106,19 @@ class OpeningBook:
             return self.position_cache[position_key]
         
         # Priority 1: Check mainlines (10+ move coverage)
-        move = self._get_move_from_book(position_key, self.mainlines)
+        move = self._get_move_from_book(position_key, self.mainlines, board)
         if move:
             self.position_cache[position_key] = move
             return move
             
         # Priority 2: Check sidelines (8+ move variations)
-        move = self._get_move_from_book(position_key, self.sidelines)
+        move = self._get_move_from_book(position_key, self.sidelines, board)
         if move:
             self.position_cache[position_key] = move
             return move
             
         # Priority 3: Check edge cases (3-5 move challenging positions)
-        move = self._get_move_from_book(position_key, self.edge_cases)
+        move = self._get_move_from_book(position_key, self.edge_cases, board)
         if move:
             self.position_cache[position_key] = move
             return move
@@ -138,13 +138,14 @@ class OpeningBook:
         position_fen = " ".join(fen_parts[:4])  # Position, color, castling, en passant
         return position_fen
     
-    def _get_move_from_book(self, position_key: str, book_data: Dict) -> Optional[Move]:
+    def _get_move_from_book(self, position_key: str, book_data: Dict, board: Board) -> Optional[Move]:
         """
         Look up move from specific book section with weighted selection.
         
         Args:
             position_key: Position identifier
             book_data: Book section to search (mainlines/sidelines/edge_cases)
+            board: Current chess position for move parsing
             
         Returns:
             Selected move or None if not found
@@ -157,21 +158,21 @@ class OpeningBook:
         # If single move, return it
         if isinstance(position_data, str):
             try:
-                return Move.from_uci(position_data)
+                return board.parse_san(position_data)
             except:
                 return None
         
         # If multiple moves with weights, select intelligently
         if isinstance(position_data, dict):
-            return self._select_weighted_move(position_data)
+            return self._select_weighted_move(position_data, board)
         
         # If list of moves, select with preference system
         if isinstance(position_data, list):
-            return self._select_from_list(position_data)
+            return self._select_from_list(position_data, board)
             
         return None
     
-    def _select_weighted_move(self, move_data: Dict) -> Optional[Move]:
+    def _select_weighted_move(self, move_data: Dict, board: Board) -> Optional[Move]:
         """
         Select move from weighted options with preference consideration.
         
@@ -183,9 +184,9 @@ class OpeningBook:
         moves = []
         weights = []
         
-        for move_uci, weight in move_data.items():
+        for move_san, weight in move_data.items():
             try:
-                move = Move.from_uci(move_uci)
+                move = board.parse_san(move_san)
                 moves.append(move)
                 weights.append(weight)
             except:
@@ -198,16 +199,16 @@ class OpeningBook:
         selected_move = random.choices(moves, weights=weights)[0]
         return selected_move
     
-    def _select_from_list(self, move_list: List[str]) -> Optional[Move]:
+    def _select_from_list(self, move_list: List[str], board: Board) -> Optional[Move]:
         """
         Select move from list with anti-repetition variety.
         """
         import random
         
         valid_moves = []
-        for move_uci in move_list:
+        for move_san in move_list:
             try:
-                move = Move.from_uci(move_uci)
+                move = board.parse_san(move_san)
                 valid_moves.append(move)
             except:
                 continue
