@@ -789,7 +789,7 @@ class DepthSearchEngine(SlowMateEngine):
         """Get engine identification information for UCI."""
         return {
             'name': 'SlowMate Depth Engine',
-            'version': '0.1.0',
+            'version': '0.1.01',
             'author': 'SlowMate Development Team',
             'description': 'Educational chess engine with depth search and tactical intelligence',
             'features': [

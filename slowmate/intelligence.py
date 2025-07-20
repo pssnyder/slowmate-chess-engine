@@ -36,6 +36,7 @@ DEBUG_CONFIG = {
     # Safety and tactical features
     'king_safety': True,               # King safety evaluation (castling, pawn shield)
     'threat_awareness': True,          # ENABLED: Piece threat detection and penalty system
+    'threat_defense': True,            # v0.1.01: ENABLED: Bonus for moves that defend against threats
     'capture_calculation': True,       # Capture opportunity evaluation
     'tactical_combinations': True,     # ENABLED: Unified tactical bonus (threats + captures)
     
@@ -57,7 +58,10 @@ DEBUG_CONFIG = {
     'bishop_coordination': True,       # Bishop pairing and color coordination
     
     # Future features (placeholders for when implemented)
-    'pawn_structure': False,          # Future: Advanced pawn structure analysis
+    'pawn_structure': True,           # v0.1.01: Advanced pawn structure analysis
+    'queen_development': True,        # v0.1.01: Queen early development penalties
+    'queen_trade_avoidance': True,    # v0.1.01: Avoid premature queen trades and exchanges
+    'minor_piece_development': True,  # v0.1.01: Minor piece development bonuses
     'opening_book': False,            # Future: Opening book integration
 }
 
@@ -67,6 +71,7 @@ DEBUG_DISABLED_VALUES = {
     'positional_evaluation': 0.0,     # No positional advantage  
     'king_safety': 0.0,              # Neutral king safety
     'threat_awareness': 0.0,          # No threat penalties
+    'threat_defense': 0.0,            # v0.1.01: No threat defense bonuses
     'capture_calculation': 0.0,       # No capture bonuses
     'tactical_combinations': 0.001,   # Tiny value to identify in debug output
     'attack_patterns': 0.0,           # No attack pattern bonuses
@@ -81,6 +86,9 @@ DEBUG_DISABLED_VALUES = {
     'knight_coordination': 0.0,
     'bishop_coordination': 0.0,
     'pawn_structure': 0.0,
+    'queen_development': 0.0,
+    'queen_trade_avoidance': 0.0,     # v0.1.01: No queen trade avoidance penalties
+    'minor_piece_development': 0.0,
 }
 
 def is_feature_enabled(feature_name: str) -> bool:
@@ -142,17 +150,18 @@ class MoveIntelligence:
     # Each piece gets tailored positional preferences
     
     # Pawn PST - Encourage advancement and center control
+    # v0.1.1: Enhanced center control incentives, especially e4/d4/c4/f4 squares
     PAWN_PST = [
         # Rank 1: Pawns can't be here (promotion squares)
          0,   0,   0,   0,   0,   0,   0,   0,
         # Rank 2: Starting position, neutral
          0,   0,   0,   0,   0,   0,   0,   0,
         # Rank 3: Modest advance bonus
-         5,  10,  10, -20, -20,  10,  10,   5,
-        # Rank 4: Good central advance, strong center bonus
-         5,  -5, -10,  20,  20, -10,  -5,   5,
-        # Rank 5: Strong central control
-         0,   0,   0,  25,  25,   0,   0,   0,
+         5,  10,  10, -15, -15,  10,  10,   5,
+        # Rank 4: Strong central squares (c4, d4, e4, f4 for white)
+         5,  -5,  25,  35,  35,  25,  -5,   5,
+        # Rank 5: Advanced central control
+         0,   0,  10,  30,  30,  10,   0,   0,
         # Rank 6: Advanced pawns, very good
         10,  10,  20,  30,  30,  20,  10,  10,
         # Rank 7: About to promote, excellent
@@ -202,16 +211,17 @@ class MoveIntelligence:
          0,   0,   0,   5,   5,   0,   0,   0
     ]
     
-    # Queen PST - Flexible positioning, slight center preference
+    # Queen PST - Conservative positioning, discourage early queen moves
+    # v0.1.01: Back rank bonus, stronger penalties for early development
     QUEEN_PST = [
-        -20, -10, -10,  -5,  -5, -10, -10, -20,
-        -10,   0,   0,   0,   0,   0,   0, -10,
-        -10,   0,   5,   5,   5,   5,   0, -10,
-         -5,   0,   5,   5,   5,   5,   0,  -5,
-          0,   0,   5,   5,   5,   5,   0,  -5,
-        -10,   5,   5,   5,   5,   5,   0, -10,
-        -10,   0,   5,   0,   0,   0,   0, -10,
-        -20, -10, -10,  -5,  -5, -10, -10, -20
+        -10,  -5,  -5,   0,   0,  -5,  -5, -10,  # Rank 1: Back rank bonus
+        -15,  -5,  -5,  -5,  -5,  -5,  -5, -15,  # Rank 2: Second rank acceptable
+        -20, -10, -10, -10, -10, -10, -10, -20,  # Rank 3: Mild penalty
+        -25, -15, -15, -15, -15, -15, -15, -25,  # Rank 4: Strong penalty
+        -25, -15, -15, -15, -15, -15, -15, -25,  # Rank 5: Strong penalty
+        -20, -10, -10, -10, -10, -10, -10, -20,  # Rank 6: Mild penalty
+        -15,  -5,  -5,  -5,  -5,  -5,  -5, -15,  # Rank 7: Second rank for black
+        -10,  -5,  -5,   0,   0,  -5,  -5, -10   # Rank 8: Back rank for black
     ]
     
     # King PST - Safety first, prefer back rank in middlegame
@@ -571,6 +581,21 @@ class MoveIntelligence:
         white_coordination = self._calculate_piece_coordination_score(chess.WHITE)
         black_coordination = self._calculate_piece_coordination_score(chess.BLACK)
         
+        # Pawn structure evaluation (v0.1.01)
+        white_pawn_structure = self._calculate_pawn_structure_score(chess.WHITE)
+        black_pawn_structure = self._calculate_pawn_structure_score(chess.BLACK)
+        
+        # Queen development evaluation (v0.1.01)
+        white_queen_dev = self._calculate_queen_development_score(chess.WHITE)
+        black_queen_dev = self._calculate_queen_development_score(chess.BLACK)
+        
+        # Minor piece development evaluation (v0.1.01)
+        white_minor_dev = self._calculate_minor_piece_development_bonus(chess.WHITE)
+        black_minor_dev = self._calculate_minor_piece_development_bonus(chess.BLACK)
+        
+        # Queen trade avoidance evaluation (v0.1.01) - MUST be calculated BEFORE making the move
+        queen_trade_penalty = self._calculate_queen_trade_avoidance(move, current_player)
+        
         # Combine all scores from current player's perspective
         if current_player == chess.WHITE:
             material_score = white_material - black_material
@@ -579,6 +604,9 @@ class MoveIntelligence:
             captures_score = white_captures - black_captures
             attacks_score = white_attacks - black_attacks
             coordination_score = white_coordination - black_coordination
+            pawn_structure_score = white_pawn_structure - black_pawn_structure
+            queen_dev_score = white_queen_dev - black_queen_dev
+            minor_dev_score = white_minor_dev - black_minor_dev
         else:
             material_score = black_material - white_material
             positional_score = black_pst - white_pst
@@ -586,11 +614,19 @@ class MoveIntelligence:
             captures_score = black_captures - white_captures
             attacks_score = black_attacks - white_attacks
             coordination_score = black_coordination - white_coordination
+            pawn_structure_score = black_pawn_structure - white_pawn_structure
+            queen_dev_score = black_queen_dev - white_queen_dev
+            minor_dev_score = black_minor_dev - white_minor_dev
         
-        total_score = material_score + positional_score + king_safety_score + captures_score + attacks_score + coordination_score
+        total_score = (material_score + positional_score + king_safety_score + captures_score + 
+                      attacks_score + coordination_score + pawn_structure_score + 
+                      queen_dev_score + minor_dev_score)
         
-        # Add the pre-calculated tactical combination bonus
+        # Add the unified tactical bonus (replaces separate threat defense system)
         total_score += combination_bonus
+        
+        # Apply queen trade penalty
+        total_score += queen_trade_penalty
         
         # Debug output for key moves
         if str(move) in ['g2a8', 'g2b7']:
@@ -632,6 +668,18 @@ class MoveIntelligence:
         white_coordination = self._calculate_piece_coordination_score(chess.WHITE)
         black_coordination = self._calculate_piece_coordination_score(chess.BLACK)
         
+        # Pawn structure evaluation (v0.1.1)
+        white_pawn_structure = self._calculate_pawn_structure_score(chess.WHITE)
+        black_pawn_structure = self._calculate_pawn_structure_score(chess.BLACK)
+        
+        # Queen development evaluation (v0.1.1)
+        white_queen_dev = self._calculate_queen_development_score(chess.WHITE)
+        black_queen_dev = self._calculate_queen_development_score(chess.BLACK)
+        
+        # Minor piece development bonus (v0.1.01)
+        white_minor_dev = self._calculate_minor_piece_development_bonus(chess.WHITE)
+        black_minor_dev = self._calculate_minor_piece_development_bonus(chess.BLACK)
+        
         # Combine scores from current player's perspective
         if self.engine.board.turn == chess.WHITE:
             material_score = white_material - black_material
@@ -640,6 +688,9 @@ class MoveIntelligence:
             captures_score = white_captures - black_captures
             attacks_score = white_attacks - black_attacks
             coordination_score = white_coordination - black_coordination
+            pawn_structure_score = white_pawn_structure - black_pawn_structure
+            queen_development_score = white_queen_dev - black_queen_dev
+            minor_development_score = white_minor_dev - black_minor_dev
         else:
             material_score = black_material - white_material
             positional_score = black_pst - white_pst
@@ -647,8 +698,13 @@ class MoveIntelligence:
             captures_score = black_captures - white_captures
             attacks_score = black_attacks - white_attacks
             coordination_score = black_coordination - white_coordination
+            pawn_structure_score = black_pawn_structure - white_pawn_structure
+            queen_development_score = black_queen_dev - white_queen_dev
+            minor_development_score = black_minor_dev - white_minor_dev
         
-        return material_score + positional_score + king_safety_score + captures_score + attacks_score + coordination_score
+        return (material_score + positional_score + king_safety_score + 
+                captures_score + attacks_score + coordination_score +
+                pawn_structure_score + queen_development_score + minor_development_score)
     
     def _calculate_material(self, color: chess.Color) -> int:
         """
@@ -664,8 +720,8 @@ class MoveIntelligence:
     
     def _calculate_material_with_threats(self, color: chess.Color) -> int:
         """
-        Calculate material value with threat modifiers applied.
-        Threatened pieces are valued at 50% to reflect risk.
+        Calculate material value with modern threat evaluation.
+        Uses a more nuanced approach that considers piece defense and exchange values.
         
         Args:
             color: The color to calculate material for
@@ -684,15 +740,13 @@ class MoveIntelligence:
             if piece and piece.color == color and piece.piece_type != chess.KING:
                 base_value = self.PIECE_VALUES[piece.piece_type]
                 
-                # Apply threat modifier if threat awareness is enabled
-                if is_feature_enabled('threat_awareness') and self._is_piece_under_threat(square, color):
-                    # Threatened piece worth 50% of base value
-                    threat_modifier = 0.5
+                # Apply modern threat evaluation if enabled
+                if is_feature_enabled('threat_awareness'):
+                    threat_adjustment = self._evaluate_piece_safety(square, piece, color)
+                    total += base_value + threat_adjustment
                 else:
-                    # Safe piece worth full value (or threat awareness disabled)
-                    threat_modifier = 1.0
-                
-                total += int(base_value * threat_modifier)
+                    # No threat awareness - full value
+                    total += base_value
         
         return total
     
@@ -713,6 +767,127 @@ class MoveIntelligence:
         
         # Use python-chess built-in attack detection for accuracy
         return board.is_attacked_by(opponent_color, square)
+    
+    def _evaluate_piece_safety(self, square: chess.Square, piece: chess.Piece, color: chess.Color) -> int:
+        """
+        Modern piece safety evaluation that considers both threats and defenses.
+        
+        This replaces the harsh 50% penalty system with a nuanced evaluation that:
+        1. Calculates the actual exchange value if the piece is captured
+        2. Considers piece defenses and support
+        3. Applies reasonable penalties only when pieces are truly vulnerable
+        
+        Args:
+            square: The square where the piece is located
+            piece: The piece to evaluate
+            color: The color of the piece
+            
+        Returns:
+            Safety adjustment in centipawns (negative = penalty for unsafe piece)
+        """
+        board = self.engine.board
+        piece_value = self.PIECE_VALUES[piece.piece_type]
+        
+        # If piece is not under attack, no penalty
+        if not board.is_attacked_by(not color, square):
+            return 0
+            
+        # Piece is under attack - calculate exchange evaluation
+        attackers = list(board.attackers(not color, square))
+        defenders = list(board.attackers(color, square))
+        
+        if not attackers:
+            return 0  # No attackers, piece is safe
+            
+        # Calculate Static Exchange Evaluation (SEE)
+        see_score = self._static_exchange_evaluation(square, piece, attackers, defenders)
+        
+        # Convert SEE to penalty
+        if see_score < 0:
+            # We lose material in the exchange - apply penalty proportional to loss
+            # But cap it at 30% of piece value to avoid over-penalization
+            penalty = min(abs(see_score), int(piece_value * 0.3))
+            return -penalty
+        elif see_score == 0:
+            # Equal exchange - small penalty for piece instability
+            return -int(piece_value * 0.05)  # 5% penalty
+        else:
+            # We gain material if captured - no penalty
+            return 0
+    
+    def _static_exchange_evaluation(self, square: chess.Square, target_piece: chess.Piece, 
+                                   attackers: List[chess.Square], defenders: List[chess.Square]) -> int:
+        """
+        Calculate Static Exchange Evaluation (SEE) for a piece on a square.
+        
+        This simulates the sequence of captures and recaptures to determine
+        the net material outcome if all exchanges are played out.
+        
+        Args:
+            square: The square where exchanges would occur
+            target_piece: The piece currently on the square
+            attackers: List of squares with enemy pieces attacking this square
+            defenders: List of squares with our pieces defending this square
+            
+        Returns:
+            Material balance after all exchanges (positive = we gain material)
+        """
+        if not attackers:
+            return 0
+            
+        board = self.engine.board
+        
+        # Get piece values for all attackers and defenders
+        attacker_values = []
+        for attacker_square in attackers:
+            attacker_piece = board.piece_at(attacker_square)
+            if attacker_piece:
+                attacker_values.append(self.PIECE_VALUES[attacker_piece.piece_type])
+        
+        defender_values = []
+        for defender_square in defenders:
+            defender_piece = board.piece_at(defender_square)
+            if defender_piece:
+                defender_values.append(self.PIECE_VALUES[defender_piece.piece_type])
+                
+        # Sort attackers and defenders by value (cheapest first)
+        attacker_values.sort()
+        defender_values.sort()
+        
+        # Simulate the exchange sequence
+        captured_value = self.PIECE_VALUES[target_piece.piece_type]
+        material_balance = captured_value  # We lose the target piece initially
+        
+        # Alternate captures starting with cheapest attacker
+        attacker_idx = 0
+        defender_idx = 0
+        attacker_turn = True
+        
+        while True:
+            if attacker_turn:
+                # Attacker's turn to capture
+                if attacker_idx >= len(attacker_values):
+                    break  # No more attackers
+                
+                # Attacker captures current piece on square
+                if defender_idx > 0:
+                    # Recapturing a defender
+                    material_balance -= defender_values[defender_idx - 1]
+                
+                attacker_idx += 1
+                attacker_turn = False
+            else:
+                # Defender's turn to recapture
+                if defender_idx >= len(defender_values):
+                    break  # No more defenders
+                    
+                # Defender recaptures current attacker
+                material_balance += attacker_values[attacker_idx - 1]
+                
+                defender_idx += 1
+                attacker_turn = True
+                
+        return -material_balance  # Negative because we're evaluating from target's perspective
     
     def _piece_attacks_square(self, attacker_square: chess.Square, target_square: chess.Square, 
                              attacker_piece: chess.Piece) -> bool:
@@ -899,15 +1074,12 @@ class MoveIntelligence:
     
     def _calculate_captures_score(self, color: chess.Color) -> int:
         """
-        Calculate captures score using square-centric evaluation.
+        Modern capture evaluation using direct move analysis.
         
-        For each square on the board, we calculate:
-        1. Total value of our pieces that can attack it
-        2. Total value of opponent pieces that can attack it  
-        3. The difference gives us the "capture weight" for that square
-        
-        This immediately shows tactical advantages/disadvantages and focuses on
-        immediate material exchanges rather than abstract opportunities.
+        This replaces the complex square-centric approach with a simpler system that:
+        1. Evaluates actual capture moves available to the player
+        2. Rewards good captures and penalizes bad ones
+        3. Focuses on immediate tactical opportunities
         
         Args:
             color: The color to calculate captures score for
@@ -919,102 +1091,70 @@ class MoveIntelligence:
             return int(get_disabled_value('capture_calculation'))
             
         total_capture_score = 0
+        board = self.engine.board
         
-        # Evaluate each square on the board
-        for square in chess.SQUARES:
-            square_score = self._evaluate_square_capture_weight(square, color)
-            total_capture_score += square_score
-        
+        # Only evaluate captures if it's this color's turn or we're doing position evaluation
+        if board.turn == color:
+            # Generate all legal moves and filter for captures
+            legal_moves = list(board.legal_moves)
+            capture_moves = [move for move in legal_moves if board.is_capture(move)]
+            
+            for capture in capture_moves:
+                capture_score = self._evaluate_single_capture(capture, color)
+                total_capture_score += capture_score
+                
         return total_capture_score
     
-    def _evaluate_square_capture_weight(self, square: chess.Square, color: chess.Color) -> int:
+    def _evaluate_single_capture(self, move: chess.Move, color: chess.Color) -> int:
         """
-        Evaluate the capture weight for a specific square from our perspective.
-        
-        Calculate the net tactical value if all eligible pieces attack this square:
-        - Our attacking pieces value (positive)
-        - Opponent attacking pieces value (negative) 
-        - If there's a piece on the square, factor in its value
+        Evaluate a single capture move using modern chess engine principles.
         
         Args:
-            square: The square to evaluate
-            color: Our color (perspective for evaluation)
+            move: The capture move to evaluate
+            color: The color making the capture
             
         Returns:
-            Net capture weight in centipawns (positive = good for us)
+            Evaluation score for this capture in centipawns
         """
-        # Get the piece currently on this square (if any)
-        target_piece = self.engine.board.piece_at(square)
+        board = self.engine.board
         
-        # Calculate attacking piece values
-        our_attackers_value = self._get_square_attackers_value(square, color)
-        opponent_attackers_value = self._get_square_attackers_value(square, not color)
+        # Get pieces involved
+        attacker = board.piece_at(move.from_square)
+        victim = board.piece_at(move.to_square)
         
-        # Base tactical weight: our attacking power minus opponent's
-        tactical_weight = our_attackers_value - opponent_attackers_value
-        
-        # If there's a piece on this square, factor it into the evaluation
-        if target_piece:
-            piece_value = self.PIECE_VALUES[target_piece.piece_type]
+        if not attacker or not victim:
+            return 0
             
-            if target_piece.color != color:
-                # Enemy piece: if we have tactical advantage, reward capturing it
-                if tactical_weight > 0:
-                    # Scale the piece value by our tactical advantage
-                    capture_bonus = int(piece_value * min(tactical_weight / 1000.0, 1.0))
-                    return capture_bonus
-                else:
-                    # We can't safely capture this piece
-                    return 0
-            else:
-                # Our own piece: if opponent has tactical advantage, penalize exposure
-                if opponent_attackers_value > our_attackers_value:
-                    # Our piece is under threat
-                    threat_penalty = int(piece_value * 0.3)  # 30% penalty for threatened piece
-                    return -threat_penalty
-                else:
-                    # Our piece is safe or defended
-                    return 0
+        attacker_value = self.PIECE_VALUES[attacker.piece_type]
+        victim_value = self.PIECE_VALUES[victim.piece_type]
+        
+        # Use SEE to evaluate the capture
+        attackers = list(board.attackers(not color, move.to_square))
+        defenders = list(board.attackers(color, move.to_square))
+        
+        # Remove the moving piece from defenders (it's making the capture)
+        if move.from_square in defenders:
+            defenders.remove(move.from_square)
+            
+        see_score = self._static_exchange_evaluation(move.to_square, victim, attackers, defenders)
+        
+        # Convert SEE to capture bonus/penalty
+        if see_score > 0:
+            # Good capture - we gain material
+            bonus = int(see_score * 0.5)  # 50% of material gain as bonus
+            return min(bonus, 200)  # Cap at 2 pawns to prevent over-optimization
+        elif see_score == 0:
+            # Even exchange - small positive bonus to encourage activity
+            return 10
         else:
-            # Empty square: tactical control has some value for future moves
-            if tactical_weight > 0:
-                # We control this square better than opponent
-                control_bonus = min(tactical_weight // 10, 10)  # Small bonus, capped at 10cp
-                return control_bonus
-            else:
-                # No significant tactical advantage on empty square
-                return 0
-    
-    def _get_square_attackers_value(self, square: chess.Square, color: chess.Color) -> int:
-        """
-        Calculate total value of pieces that can attack a given square.
-        
-        Args:
-            square: The square to analyze
-            color: The color of attacking pieces to count
-            
-        Returns:
-            Total value of attacking pieces in centipawns
-        """
-        total_value = 0
-        
-        # Find all pieces of the given color that can attack this square
-        for piece_square in chess.SQUARES:
-            piece = self.engine.board.piece_at(piece_square)
-            if piece and piece.color == color:
-                # Check if this piece can attack the target square
-                if self.engine.board.attacks(piece_square) & chess.BB_SQUARES[square]:
-                    piece_value = self.PIECE_VALUES[piece.piece_type]
-                    total_value += piece_value
-        
-        return total_value
-    
-        return total_value
+            # Bad capture - we lose material
+            penalty = int(abs(see_score) * 0.3)  # 30% of material loss as penalty
+            return -min(penalty, 200)  # Cap penalty to prevent paralysis
     
     def _get_captures_analysis(self, color: chess.Color) -> Dict[str, Any]:
         """
         Get detailed captures analysis for debugging and evaluation details.
-        Now uses square-centric evaluation approach.
+        Updated to work with the new direct capture evaluation system.
         
         Args:
             color: The color to analyze captures for
@@ -1022,52 +1162,60 @@ class MoveIntelligence:
         Returns:
             Dictionary with captures analysis details
         """
-        significant_squares = []
-        total_captures_score = 0
-        controlled_squares = 0
-        threatened_pieces = 0
+        board = self.engine.board
+        captures_by_type = {'winning': [], 'equal': [], 'losing': []}
+        total_score = 0
         
-        # Analyze each square for tactical significance
-        for square in chess.SQUARES:
-            square_weight = self._evaluate_square_capture_weight(square, color)
+        # Only analyze if it's this color's turn
+        if board.turn == color:
+            legal_moves = list(board.legal_moves)
+            capture_moves = [move for move in legal_moves if board.is_capture(move)]
             
-            if abs(square_weight) >= 10:  # Only report significant squares
-                square_name = chess.square_name(square)
-                target_piece = self.engine.board.piece_at(square)
-                our_attackers = self._get_square_attackers_value(square, color)
-                opponent_attackers = self._get_square_attackers_value(square, not color)
+            for capture in capture_moves:
+                attacker = board.piece_at(capture.from_square)
+                victim = board.piece_at(capture.to_square)
                 
-                analysis = {
-                    'square': square_name,
-                    'weight': square_weight,
-                    'our_attackers_value': our_attackers,
-                    'opponent_attackers_value': opponent_attackers,
-                    'target_piece': target_piece.symbol() if target_piece else None,
-                    'target_value': self.PIECE_VALUES[target_piece.piece_type] if target_piece else 0
-                }
-                significant_squares.append(analysis)
-                
-                if square_weight > 0:
-                    controlled_squares += 1
-                elif target_piece and target_piece.color == color:
-                    threatened_pieces += 1
-            
-            total_captures_score += square_weight
-        
-        # Sort by absolute weight for better readability
-        significant_squares.sort(key=lambda x: abs(x['weight']), reverse=True)
+                if attacker and victim:
+                    attacker_value = self.PIECE_VALUES[attacker.piece_type]
+                    victim_value = self.PIECE_VALUES[victim.piece_type]
+                    
+                    # Use SEE for accurate evaluation
+                    see_score = self._evaluate_capture_see(capture, color)
+                    capture_score = self._evaluate_single_capture(capture, color)
+                    
+                    capture_info = {
+                        'move': board.san(capture),
+                        'attacker_piece': attacker.symbol(),
+                        'victim_piece': victim.symbol(),
+                        'attacker_value': attacker_value,
+                        'victim_value': victim_value,
+                        'see_score': see_score,
+                        'eval_score': capture_score
+                    }
+                    
+                    # Categorize the capture
+                    if see_score > 0:
+                        captures_by_type['winning'].append(capture_info)
+                    elif see_score == 0:
+                        captures_by_type['equal'].append(capture_info)
+                    else:
+                        captures_by_type['losing'].append(capture_info)
+                        
+                    total_score += capture_score
         
         return {
-            'significant_squares': significant_squares,
-            'total_score': total_captures_score,
-            'controlled_squares': controlled_squares,
-            'threatened_pieces': threatened_pieces,
-            'analysis_type': 'square_centric'
+            'winning_captures': captures_by_type['winning'],
+            'equal_captures': captures_by_type['equal'],
+            'losing_captures': captures_by_type['losing'],
+            'total_captures': len(captures_by_type['winning']) + len(captures_by_type['equal']) + len(captures_by_type['losing']),
+            'total_score': total_score,
+            'analysis_type': 'direct_move_evaluation'
         }
 
     def _get_threat_analysis(self, color: chess.Color) -> Dict[str, Any]:
         """
         Get detailed threat analysis for debugging and evaluation details.
+        Updated to work with the new piece safety evaluation system.
         
         Args:
             color: The color to analyze threats for
@@ -1084,21 +1232,37 @@ class MoveIntelligence:
             if piece and piece.color == color and piece.piece_type != chess.KING:
                 base_value = self.PIECE_VALUES[piece.piece_type]
                 
-                if self._is_piece_under_threat(square, color):
-                    threat_penalty = base_value // 2  # 50% penalty
-                    threatened_pieces.append({
-                        'square': chess.square_name(square),
-                        'piece': piece.symbol(),
-                        'base_value': base_value,
-                        'threat_penalty': threat_penalty,
-                        'effective_value': base_value - threat_penalty
-                    })
-                    total_threat_penalty += threat_penalty
+                # Use the new safety evaluation
+                if is_feature_enabled('threat_awareness'):
+                    safety_adjustment = self._evaluate_piece_safety(square, piece, color)
+                    effective_value = base_value + safety_adjustment
+                    
+                    if safety_adjustment < 0:
+                        # Piece has safety issues
+                        threatened_pieces.append({
+                            'square': chess.square_name(square),
+                            'piece': piece.symbol(),
+                            'base_value': base_value,
+                            'safety_penalty': abs(safety_adjustment),
+                            'effective_value': effective_value,
+                            'under_attack': self._is_piece_under_threat(square, color)
+                        })
+                        total_threat_penalty += abs(safety_adjustment)
+                    else:
+                        # Piece is safe
+                        safe_pieces.append({
+                            'square': chess.square_name(square),
+                            'piece': piece.symbol(),
+                            'value': base_value,
+                            'under_attack': False
+                        })
                 else:
+                    # Threat awareness disabled
                     safe_pieces.append({
                         'square': chess.square_name(square),
                         'piece': piece.symbol(),
-                        'value': base_value
+                        'value': base_value,
+                        'under_attack': False
                     })
         
         return {
@@ -1106,110 +1270,107 @@ class MoveIntelligence:
             'safe_pieces': safe_pieces,
             'total_threat_penalty': total_threat_penalty,
             'pieces_under_threat': len(threatened_pieces),
-            'safe_pieces_count': len(safe_pieces)
+            'safe_pieces_count': len(safe_pieces),
+            'evaluation_method': 'modern_see_based'
         }
     
     def _calculate_tactical_combination_bonus(self, move: chess.Move, color: chess.Color) -> int:
         """
-        Calculate bonus for moves that solve multiple tactical problems.
-        This unifies threats and captures evaluation to prioritize moves that:
-        1. Escape threats while capturing valuable pieces
-        2. Remove attacking pieces while gaining material
-        3. Create forcing sequences that improve position
+        Modern tactical evaluation that rewards good moves with unified logic.
+        
+        This replaces the complex separate systems with a single evaluation that:
+        1. Identifies moves that escape threats
+        2. Identifies profitable captures
+        3. Rewards moves that do both (tactical combinations)
+        4. Uses reasonable bonuses that don't dominate other factors
         
         Args:
             move: The move to evaluate
             color: The color making the move
             
         Returns:
-            Bonus score in centipawns
+            Tactical bonus score in centipawns
         """
         if not is_feature_enabled('tactical_combinations'):
             return int(get_disabled_value('tactical_combinations'))
             
-        bonus = 0
+        board = self.engine.board
         from_square = move.from_square
         to_square = move.to_square
         
         # Get the piece being moved
-        piece = self.engine.board.piece_at(from_square)
+        piece = board.piece_at(from_square)
         if not piece:
             return 0
             
-        # Check if this move solves a threat (piece was under attack)
-        escapes_threat = is_feature_enabled('threat_awareness') and self._is_piece_under_threat(from_square, color)
+        bonus = 0
         
-        # Check if this is a capture
-        captured_piece = self.engine.board.piece_at(to_square)
+        # 1. Check if move escapes a threat
+        escapes_threat = (is_feature_enabled('threat_awareness') and 
+                         self._is_piece_under_threat(from_square, color))
+        
+        # 2. Check if move is a capture
+        captured_piece = board.piece_at(to_square)
         is_capture = captured_piece is not None
         
-        # Debug output
-        if str(move) in ['g2a8', 'g2b7']:
-            print(f"DEBUG TACTICAL: Move {move}")
-            print(f"  - escapes_threat: {escapes_threat}")
-            print(f"  - is_capture: {is_capture}")
-            print(f"  - piece: {piece.symbol() if piece else None}")
-            print(f"  - captured_piece: {captured_piece.symbol() if captured_piece else None}")
-            print(f"  - threat_awareness enabled: {is_feature_enabled('threat_awareness')}")
-            print(f"  - tactical_combinations enabled: {is_feature_enabled('tactical_combinations')}")
-        
-        # Combination bonus: Escape threat + capture valuable piece
+        # 3. Evaluate the combination
         if escapes_threat and is_capture:
-            # Base bonus for solving both problems at once
-            bonus += 200  # 2.0 pawn bonus for tactical combination
+            # TACTICAL COMBINATION: Escape + Capture
+            # This is exactly what we want to encourage
             
-            # Additional bonus based on value difference
-            piece_value = self.PIECE_VALUES[piece.piece_type]
-            captured_value = self.PIECE_VALUES[captured_piece.piece_type]
+            # Base bonus for solving two problems at once
+            bonus += 100  # 1 pawn bonus
             
-            # Extra bonus if we're capturing a more valuable piece while escaping
-            if captured_value > piece_value:
-                bonus += min(captured_value - piece_value, 400)  # Cap at 4 pawns
-            
-            # Extra bonus if we're removing the piece that was threatening us
-            if self.engine.board.is_attacked_by(not color, from_square):
-                # Check if the captured piece was one of the attackers
-                if captured_piece and self.engine.board.attacks(to_square):
-                    if from_square in self.engine.board.attacks(to_square):
-                        bonus += 100  # 1.0 pawn bonus for removing attacker
-                        
-            # Special bonus for escaping threat by capturing high-value pieces
-            if captured_value >= 500:  # Rook or Queen
-                bonus += 300  # Extra 3.0 pawn bonus for capturing rook/queen while escaping
-        
-        # Bonus for capturing while creating new threats
-        elif is_capture:
-            # Make the move temporarily to see if it creates new tactical opportunities
-            self.engine.board.push(move)
-            
-            try:
-                # Check if this capture creates new threats against enemy pieces
-                new_threats = 0
-                if is_feature_enabled('threat_awareness'):
-                    for square in chess.SQUARES:
-                        enemy_piece = self.engine.board.piece_at(square)
-                        if enemy_piece and enemy_piece.color != color:
-                            if self._is_piece_under_threat(square, not color):
-                                new_threats += 1
+            # Extra bonus if the capture is profitable
+            if captured_piece:
+                piece_value = self.PIECE_VALUES[piece.piece_type]
+                captured_value = self.PIECE_VALUES[captured_piece.piece_type]
                 
-                # Small bonus for captures that create additional threats
-                if new_threats > 0:
-                    bonus += min(new_threats * 10, 30)  # Max 0.3 pawn bonus
+                if captured_value >= piece_value:
+                    # Profitable or equal exchange while escaping
+                    value_diff = captured_value - piece_value
+                    bonus += min(value_diff // 2, 150)  # Up to 1.5 pawn bonus
                     
-            finally:
-                self.engine.board.pop()
-        
-        # Bonus for moves that escape threats to central squares
-        elif escapes_threat:
-            # Small bonus for escaping to better squares
-            to_file = chess.square_file(to_square)
-            to_rank = chess.square_rank(to_square)
+        elif is_capture:
+            # CAPTURE ONLY: Use SEE to determine if it's good
+            see_score = self._evaluate_capture_see(move, color)
             
-            # Bonus for escaping to central squares (d4, d5, e4, e5)
-            if to_file in [3, 4] and to_rank in [3, 4]:
-                bonus += 15  # 0.15 pawn bonus for centralizing while escaping
-        
+            if see_score > 0:
+                # Good capture - moderate bonus
+                bonus += min(see_score // 4, 50)  # Up to 0.5 pawn bonus
+                
+        elif escapes_threat:
+            # ESCAPE ONLY: Small bonus for getting to safety
+            bonus += 25  # 0.25 pawn bonus
+            
         return bonus
+    
+    def _evaluate_capture_see(self, capture_move: chess.Move, color: chess.Color) -> int:
+        """
+        Helper to evaluate a capture using Static Exchange Evaluation.
+        
+        Args:
+            capture_move: The capture move to evaluate
+            color: The color making the capture
+            
+        Returns:
+            SEE score (positive = good capture, negative = bad capture)
+        """
+        board = self.engine.board
+        target_square = capture_move.to_square
+        victim = board.piece_at(target_square)
+        
+        if not victim:
+            return 0
+            
+        attackers = list(board.attackers(not color, target_square))
+        defenders = list(board.attackers(color, target_square))
+        
+        # Remove the moving piece from defenders (it's making the capture)
+        if capture_move.from_square in defenders:
+            defenders.remove(capture_move.from_square)
+            
+        return self._static_exchange_evaluation(target_square, victim, attackers, defenders)
     
     def _calculate_attack_patterns_score(self, color: chess.Color) -> int:
         """
@@ -1742,10 +1903,11 @@ class MoveIntelligence:
             if opponent_knights >= 2:
                 bishop_score -= 20
         
-        # Bishop-pawn color coordination
-        for bishop_square in bishops:
-            pawn_coord_bonus = self._evaluate_bishop_pawn_coordination(bishop_square, color)
-            bishop_score += pawn_coord_bonus
+        # Bishop-pawn color coordination: REMOVED in v0.1.1
+        # Now handled by comprehensive pawn structure evaluation
+        # for bishop_square in bishops:
+        #     pawn_coord_bonus = self._evaluate_bishop_pawn_coordination(bishop_square, color)
+        #     bishop_score += pawn_coord_bonus
         
         return bishop_score
     
@@ -1839,6 +2001,457 @@ class MoveIntelligence:
         
         return advancement_bonus + central_bonus
     
+    # =============================================================================
+    # PAWN STRUCTURE AND QUEEN DEVELOPMENT EVALUATION (v0.1.1)
+    # =============================================================================
+    
+    def _calculate_pawn_structure_score(self, color: chess.Color) -> int:
+        """
+        Calculate comprehensive pawn structure evaluation.
+        
+        Evaluates:
+        1. Backward, isolated, and doubled pawn penalties
+        2. Center control incentives (e4, d4, f4, c4 for white; e5, d5, f5, c5 for black)
+        3. King safety weaknesses (overadvanced c/g pawns for white, f/b for black)
+        4. Pawn-bishop color coordination
+        5. Passed pawn tactics
+        
+        Args:
+            color: The color to evaluate
+            
+        Returns:
+            Pawn structure score in centipawns
+        """
+        if not is_feature_enabled('pawn_structure'):
+            return int(get_disabled_value('pawn_structure'))
+            
+        board = self.engine.board
+        total_score = 0
+        
+        # Get all our pawns
+        our_pawns = []
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece and piece.color == color and piece.piece_type == chess.PAWN:
+                our_pawns.append(square)
+        
+        # 1. Evaluate pawn weaknesses
+        for pawn_square in our_pawns:
+            file = chess.square_file(pawn_square)
+            rank = chess.square_rank(pawn_square)
+            
+            # Doubled pawns penalty
+            doubled_penalty = self._evaluate_doubled_pawns(pawn_square, color, our_pawns)
+            total_score -= doubled_penalty
+            
+            # Isolated pawns penalty
+            isolated_penalty = self._evaluate_isolated_pawn(pawn_square, color, our_pawns)
+            total_score -= isolated_penalty
+            
+            # Backward pawns penalty
+            backward_penalty = self._evaluate_backward_pawn(pawn_square, color, our_pawns)
+            total_score -= backward_penalty
+            
+            # King safety weaknesses (overadvanced pawns near king)
+            king_exposure_penalty = self._evaluate_king_exposure_pawn(pawn_square, color)
+            total_score -= king_exposure_penalty
+            
+        # 2. Center control evaluation
+        center_control_bonus = self._evaluate_center_control(color)
+        total_score += center_control_bonus
+        
+        # 3. Passed pawn evaluation
+        passed_pawn_bonus = self._evaluate_passed_pawns(color, our_pawns)
+        total_score += passed_pawn_bonus
+        
+        # 4. Pawn-bishop coordination
+        bishop_coordination_bonus = self._evaluate_pawn_bishop_coordination(color, our_pawns)
+        total_score += bishop_coordination_bonus
+        
+        return total_score
+    
+    def _evaluate_doubled_pawns(self, pawn_square: chess.Square, color: chess.Color, our_pawns: List[chess.Square]) -> int:
+        """Evaluate doubled pawn penalties"""
+        file = chess.square_file(pawn_square)
+        pawns_on_file = sum(1 for sq in our_pawns if chess.square_file(sq) == file)
+        
+        if pawns_on_file > 1:
+            return 20 * (pawns_on_file - 1)  # 20cp penalty per extra pawn
+        return 0
+    
+    def _evaluate_isolated_pawn(self, pawn_square: chess.Square, color: chess.Color, our_pawns: List[chess.Square]) -> int:
+        """Evaluate isolated pawn penalties"""
+        file = chess.square_file(pawn_square)
+        adjacent_files = [file - 1, file + 1]
+        
+        # Check if we have pawns on adjacent files
+        has_adjacent_support = any(
+            chess.square_file(sq) in adjacent_files for sq in our_pawns
+            if 0 <= chess.square_file(sq) <= 7
+        )
+        
+        return 15 if not has_adjacent_support else 0  # 15cp penalty for isolation
+    
+    def _evaluate_backward_pawn(self, pawn_square: chess.Square, color: chess.Color, our_pawns: List[chess.Square]) -> int:
+        """Evaluate backward pawn penalties"""
+        file = chess.square_file(pawn_square)
+        rank = chess.square_rank(pawn_square)
+        
+        # Check if pawn can't advance safely and lacks support
+        forward_square = chess.square(file, rank + (1 if color == chess.WHITE else -1))
+        
+        # If forward square is attacked by enemy pawn and we lack support
+        if self.engine.board.is_attacked_by(not color, forward_square):
+            adjacent_files = [file - 1, file + 1]
+            support_rank = rank - (1 if color == chess.WHITE else -1)
+            
+            has_support = any(
+                chess.square_file(sq) in adjacent_files and chess.square_rank(sq) >= support_rank
+                for sq in our_pawns if 0 <= chess.square_file(sq) <= 7
+            )
+            
+            return 10 if not has_support else 0  # 10cp penalty for backward pawn
+        return 0
+    
+    def _evaluate_king_exposure_pawn(self, pawn_square: chess.Square, color: chess.Color) -> int:
+        """Evaluate king exposure from overadvanced pawns"""
+        board = self.engine.board
+        our_king = board.king(color)
+        if not our_king:
+            return 0
+            
+        king_file = chess.square_file(our_king)
+        king_rank = chess.square_rank(our_king)
+        pawn_file = chess.square_file(pawn_square)
+        pawn_rank = chess.square_rank(pawn_square)
+        
+        # Check for dangerous pawn advances near king
+        if color == chess.WHITE:
+            # c or g pawn advanced too early (more than 2 ranks from starting position)
+            if pawn_file in [2, 6] and pawn_rank >= 4:  # c4+ or g4+
+                if abs(pawn_file - king_file) <= 2:  # Near king
+                    return 25  # 25cp penalty for exposing king
+        else:
+            # f or b pawn advanced too early
+            if pawn_file in [1, 5] and pawn_rank <= 3:  # b5+ or f5+ (from black's perspective)
+                if abs(pawn_file - king_file) <= 2:  # Near king
+                    return 25
+                    
+        return 0
+    
+    def _evaluate_center_control(self, color: chess.Color) -> int:
+        """Evaluate center control with enhanced incentives"""
+        board = self.engine.board
+        center_bonus = 0
+        
+        # Define center squares for each color
+        if color == chess.WHITE:
+            center_squares = [chess.C4, chess.D4, chess.E4, chess.F4]
+        else:
+            center_squares = [chess.C5, chess.D5, chess.E5, chess.F5]
+        
+        for square in center_squares:
+            piece = board.piece_at(square)
+            if piece and piece.color == color and piece.piece_type == chess.PAWN:
+                # Strong bonus for center pawns, especially d4/e4 and d5/e5
+                if square in [chess.D4, chess.E4, chess.D5, chess.E5]:
+                    center_bonus += 30  # 30cp for central d/e pawns
+                else:
+                    center_bonus += 20  # 20cp for c/f pawns
+                    
+        return center_bonus
+    
+    def _evaluate_passed_pawns(self, color: chess.Color, our_pawns: List[chess.Square]) -> int:
+        """Evaluate passed pawn bonuses"""
+        board = self.engine.board
+        passed_bonus = 0
+        
+        for pawn_square in our_pawns:
+            if self._is_passed_pawn(pawn_square, color):
+                file = chess.square_file(pawn_square)
+                rank = chess.square_rank(pawn_square)
+                
+                # Bonus increases with advancement
+                if color == chess.WHITE:
+                    advancement = rank - 1  # Ranks 2-7 = 1-6 advancement
+                else:
+                    advancement = 6 - rank  # Ranks 6-1 = 1-6 advancement
+                    
+                base_bonus = 10 + (advancement * 10)  # 20-70cp based on advancement
+                
+                # Extra bonus for central passed pawns
+                if file in [3, 4]:  # d or e file
+                    base_bonus += 20
+                    
+                passed_bonus += base_bonus
+                
+        return passed_bonus
+    
+    def _is_passed_pawn(self, pawn_square: chess.Square, color: chess.Color) -> bool:
+        """Check if a pawn is passed (no enemy pawns blocking its path)"""
+        board = self.engine.board
+        file = chess.square_file(pawn_square)
+        rank = chess.square_rank(pawn_square)
+        
+        # Check files: same file and adjacent files
+        check_files = [f for f in [file - 1, file, file + 1] if 0 <= f <= 7]
+        
+        # Direction depends on color
+        direction = 1 if color == chess.WHITE else -1
+        start_rank = rank + direction
+        end_rank = 7 if color == chess.WHITE else 0
+        
+        # Check all squares in front of pawn for enemy pawns
+        for check_file in check_files:
+            for check_rank in range(start_rank, end_rank + direction, direction):
+                if 0 <= check_rank <= 7:
+                    check_square = chess.square(check_file, check_rank)
+                    piece = board.piece_at(check_square)
+                    if piece and piece.color != color and piece.piece_type == chess.PAWN:
+                        return False
+                        
+        return True
+    
+    def _evaluate_pawn_bishop_coordination(self, color: chess.Color, our_pawns: List[chess.Square]) -> int:
+        """
+        Evaluate pawn-bishop color coordination.
+        If we only have one bishop, pawns should be on opposite colored squares.
+        """
+        board = self.engine.board
+        
+        # Find our bishops
+        bishops = []
+        light_squared_bishops = 0
+        dark_squared_bishops = 0
+        
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece and piece.color == color and piece.piece_type == chess.BISHOP:
+                bishops.append(square)
+                # Determine bishop color
+                if (chess.square_file(square) + chess.square_rank(square)) % 2 == 1:
+                    light_squared_bishops += 1
+                else:
+                    dark_squared_bishops += 1
+        
+        # If we have both bishops, coordination is less critical
+        if light_squared_bishops > 0 and dark_squared_bishops > 0:
+            return 0
+            
+        # If we only have one type of bishop, evaluate coordination
+        if light_squared_bishops > 0 and dark_squared_bishops == 0:
+            # We have only light-squared bishop(s), pawns should be on dark squares
+            coordination_bonus = 0
+            for pawn_square in our_pawns:
+                pawn_on_light = (chess.square_file(pawn_square) + chess.square_rank(pawn_square)) % 2 == 1
+                if not pawn_on_light:  # Pawn on dark square (good)
+                    coordination_bonus += 3
+                else:  # Pawn on light square (bad)
+                    coordination_bonus -= 2
+            return coordination_bonus
+            
+        elif dark_squared_bishops > 0 and light_squared_bishops == 0:
+            # We have only dark-squared bishop(s), pawns should be on light squares
+            coordination_bonus = 0
+            for pawn_square in our_pawns:
+                pawn_on_light = (chess.square_file(pawn_square) + chess.square_rank(pawn_square)) % 2 == 1
+                if pawn_on_light:  # Pawn on light square (good)
+                    coordination_bonus += 3
+                else:  # Pawn on dark square (bad)
+                    coordination_bonus -= 2
+            return coordination_bonus
+            
+        return 0  # No bishops
+    
+    def _calculate_queen_development_score(self, color: chess.Color) -> int:
+        """
+        Calculate queen development penalty to discourage early queen moves.
+        
+        The queen should stay on back ranks until:
+        1. Castling is complete or castling rights are lost
+        2. At least 2 minor pieces are developed
+        3. The position is tactical (many captures/checks available)
+        
+        Args:
+            color: The color to evaluate
+            
+        Returns:
+            Queen development score (negative = penalty for early development)
+        """
+        if not is_feature_enabled('queen_development'):
+            return int(get_disabled_value('queen_development'))
+            
+        board = self.engine.board
+        queen_penalty = 0
+        
+        # Find our queen
+        our_queen = None
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece and piece.color == color and piece.piece_type == chess.QUEEN:
+                our_queen = square
+                break
+                
+        if not our_queen:
+            return 0  # No queen (promoted or captured)
+        
+        queen_rank = chess.square_rank(our_queen)
+        
+        # Check if we still have castling rights
+        if color == chess.WHITE:
+            can_castle = board.has_castling_rights(chess.WHITE)
+            back_ranks = [0, 1]  # Ranks 1 and 2
+            starting_rank = 0
+            starting_square = chess.D1
+        else:
+            can_castle = board.has_castling_rights(chess.BLACK)
+            back_ranks = [6, 7]  # Ranks 7 and 8 (from black's perspective)
+            starting_rank = 7
+            starting_square = chess.D8
+            
+        # Count developed minor pieces
+        developed_pieces = self._count_developed_minor_pieces(color)
+        
+        # Apply penalties for early queen development
+        if can_castle:
+            # SAFE ZONE: Ranks 1-2 for White, Ranks 7-8 for Black
+            # No penalties, only potential bonuses for staying on back ranks
+            if queen_rank in back_ranks:
+                # Small bonus for keeping queen on back ranks when castling is still possible
+                if our_queen == starting_square:
+                    queen_penalty = -10  # 10cp bonus for staying on starting square
+                else:
+                    queen_penalty = -5   # 5cp bonus for staying on back rank
+            else:
+                # DANGER ZONE: Rank 3+ for White, Rank 6- for Black
+                # Now apply penalties for venturing forward
+                queen_penalty = 60  # Base penalty for leaving safe zone
+                
+                # DEFENSIVE EXCEPTION: Reduce penalty if queen is defending critical threats
+                defensive_context = self._is_queen_defending_critical_threats(color, our_queen)
+                if defensive_context:
+                    queen_penalty = max(15, queen_penalty // 4)  # Reduce to 1/4, minimum 15cp
+                else:
+                    # Additional penalty if queen moves before developing minor pieces
+                    if developed_pieces < 2:
+                        queen_penalty += 80  # Additional penalty for premature queen moves
+                    elif developed_pieces < 1:
+                        queen_penalty += 120  # Even worse if no minor pieces developed
+                        
+                    # Escalating penalty based on how far forward the queen ventures
+                    danger_ranks = queen_rank - max(back_ranks) if color == chess.WHITE else min(back_ranks) - queen_rank
+                    distance_penalty = danger_ranks * 20  # 20cp per rank into danger zone
+                    queen_penalty += distance_penalty
+                
+        elif not can_castle:
+            # No castling rights - more lenient, but still discourage over-advancement
+            if queen_rank in back_ranks:
+                queen_penalty = 0  # No penalty for staying on back ranks
+            else:
+                # Light penalty for forward queen when castling rights are lost
+                if color == chess.WHITE and queen_rank >= 4:
+                    queen_penalty = 25  # Light penalty for ranks 4+
+                elif color == chess.BLACK and queen_rank <= 3:
+                    queen_penalty = 25  # Light penalty for ranks 4- (from Black's perspective)
+                else:
+                    queen_penalty = 10  # Very light penalty for rank 3
+                    
+                # Still apply minor piece development penalty, but reduced
+                if developed_pieces < 2:
+                    queen_penalty += 15  # Reduced from 20 to 15cp
+        
+        return -queen_penalty  # Negative score = penalty
+    
+    def _is_queen_defending_critical_threats(self, color: chess.Color, queen_square: chess.Square) -> bool:
+        """
+        Check if the queen is defending against critical threats that justify early development.
+        
+        Args:
+            color: Our color
+            queen_square: Where our queen currently is
+            
+        Returns:
+            True if queen is defending critical threats, False otherwise
+        """
+        board = self.engine.board
+        
+        # Check if queen is defending any of our pieces that are under attack
+        queen_defends = board.attacks(queen_square)
+        
+        for defended_square in queen_defends:
+            defended_piece = board.piece_at(defended_square)
+            if (defended_piece and defended_piece.color == color and 
+                board.is_attacked_by(not color, defended_square)):
+                
+                # Queen is defending a piece under attack
+                piece_value = self.PIECE_VALUES.get(defended_piece.piece_type, 0)
+                
+                # Critical if defending valuable pieces or key squares
+                if (piece_value >= 300 or  # Knight/Bishop/Rook/Queen
+                    defended_square in [chess.F2, chess.F7] or  # Key pawn squares
+                    defended_piece.piece_type == chess.KING):  # King (though unlikely)
+                    return True
+                    
+        return False
+    
+    def _count_developed_minor_pieces(self, color: chess.Color) -> int:
+        """
+        Count how many minor pieces (knights and bishops) have been developed.
+        
+        Args:
+            color: The color to check
+            
+        Returns:
+            Number of developed minor pieces
+        """
+        board = self.engine.board
+        developed_count = 0
+        
+        if color == chess.WHITE:
+            # Starting squares for white minor pieces
+            starting_squares = {chess.B1, chess.G1, chess.C1, chess.F1}  # Nb1, Ng1, Bc1, Bf1
+        else:
+            # Starting squares for black minor pieces
+            starting_squares = {chess.B8, chess.G8, chess.C8, chess.F8}  # Nb8, Ng8, Bc8, Bf8
+            
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece and piece.color == color and piece.piece_type in [chess.KNIGHT, chess.BISHOP]:
+                # If piece is not on its starting square, it's developed
+                if square not in starting_squares:
+                    developed_count += 1
+                    
+        return developed_count
+    
+    def _calculate_minor_piece_development_bonus(self, color: chess.Color) -> int:
+        """
+        Calculate bonus for proper minor piece development.
+        
+        Rewards developing knights and bishops before moving the queen.
+        This works with the queen development penalty to encourage proper opening play.
+        
+        Args:
+            color: The color to evaluate
+            
+        Returns:
+            Development bonus in centipawns
+        """
+        if not is_feature_enabled('minor_piece_development'):
+            return int(get_disabled_value('minor_piece_development'))
+            
+        developed_count = self._count_developed_minor_pieces(color)
+        
+        # Base bonus for each developed minor piece
+        development_bonus = developed_count * 25  # 25cp per developed piece
+        
+        # Extra bonus for developing multiple pieces (coordination)
+        if developed_count >= 2:
+            development_bonus += 20  # Bonus for having 2+ pieces developed
+        if developed_count >= 3:
+            development_bonus += 30  # Additional bonus for 3+ pieces
+            
+        return development_bonus
+
     def _evaluate_bishop_pawn_coordination(self, bishop_square: chess.Square, color: chess.Color) -> int:
         """
         Evaluate bishop-pawn color coordination.
@@ -1879,6 +2492,108 @@ class MoveIntelligence:
         
         return coord_bonus
     
+    def _calculate_queen_trade_avoidance(self, move: chess.Move, color: chess.Color) -> int:
+        """
+        Calculate penalty for moves that lead to queen trades or expose the queen to trade.
+        
+        The queen is the most powerful piece and trading it early in the opening
+        often favors the opponent. This function discourages:
+        1. Direct queen captures where opponent can recapture with queen
+        2. Moving queen to squares where it can be attacked by opponent queen
+        3. Setting up positions where queen trade is likely/forced
+        
+        Args:
+            move: The move to evaluate (BEFORE it's made on the board)
+            color: The color making the move
+            
+        Returns:
+            Trade avoidance penalty (negative = penalty for trade-prone moves)
+        """
+        if not is_feature_enabled('queen_trade_avoidance'):
+            return int(get_disabled_value('queen_trade_avoidance'))
+            
+        trade_penalty = 0
+        board = self.engine.board
+        
+        from_square = move.from_square
+        to_square = move.to_square
+        moving_piece = board.piece_at(from_square)
+        target_piece = board.piece_at(to_square)
+        
+        if not moving_piece:
+            return 0
+            
+        # Find opponent's queen
+        opponent_queen = None
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece and piece.color != color and piece.piece_type == chess.QUEEN:
+                opponent_queen = square
+                break
+                
+        if not opponent_queen:
+            return 0  # No opponent queen, no trade concerns
+            
+        # 1. DIRECT QUEEN CAPTURE: If our queen captures opponent's queen
+        if (moving_piece.piece_type == chess.QUEEN and 
+            target_piece and target_piece.piece_type == chess.QUEEN):
+            # Generally avoid queen trades in opening/middlegame
+            game_phase = self.detect_game_phase()
+            if game_phase in ['opening', 'middlegame']:
+                trade_penalty -= 50  # 50cp penalty for direct queen trade
+                
+            # Extra penalty if we have more developed pieces (we benefit more from queens on board)
+            our_development = self._count_developed_minor_pieces(color)
+            opponent_development = self._count_developed_minor_pieces(not color)
+            if our_development > opponent_development:
+                trade_penalty -= 30  # Additional penalty if we're ahead in development
+                
+        # 2. QUEEN EXPOSURE: If we move our queen to a square attacked by opponent queen
+        elif moving_piece.piece_type == chess.QUEEN:
+            board.push(move)
+            if board.is_attacked_by(not color, to_square):
+                # Check specifically if opponent queen attacks this square
+                opponent_queen_attacks = board.attacks(opponent_queen)
+                if to_square in opponent_queen_attacks:
+                    # Our queen moved to square attacked by opponent queen
+                    trade_penalty -= 40  # 40cp penalty for exposing queen to trade
+                    
+                    # Check if we can defend the square or if it's truly dangerous
+                    defended_by_us = board.is_attacked_by(color, to_square)
+                    if not defended_by_us:
+                        trade_penalty -= 20  # Additional penalty if square is undefended
+            board.pop()
+            
+        # 3. FORCED TRADE SETUP: If move creates situation where queen trade becomes likely
+        # This is more complex and requires deeper analysis - simplified implementation
+        elif moving_piece.piece_type == chess.QUEEN:
+            # Check if moving creates tactical situation forcing queen trade
+            # For now, just penalize queen moves that don't improve position significantly
+            board.push(move)
+            
+            # If queen move doesn't create threats but exposes to counterplay
+            queen_attacks = board.attacks(to_square)
+            valuable_targets = 0
+            for sq in queen_attacks:
+                piece = board.piece_at(sq)
+                if (piece is not None and piece.color != color and 
+                    self.PIECE_VALUES.get(piece.piece_type, 0) >= 300):
+                    valuable_targets += 1
+                                 
+            if valuable_targets == 0:  # Queen move doesn't create significant threats
+                # Check if opponent can create counter-threats
+                opponent_queen_range = board.attacks(opponent_queen)
+                for sq in opponent_queen_range:
+                    piece = board.piece_at(sq)
+                    if (piece is not None and piece.color == color and 
+                        self.PIECE_VALUES.get(piece.piece_type, 0) >= 300):
+                        trade_penalty -= 15  # Light penalty for non-productive queen moves
+                        break
+                    
+            board.pop()
+            
+        return trade_penalty
+    
     def get_position_evaluation(self) -> Dict[str, int]:
         """
         Get detailed evaluation of the current position.
@@ -1897,6 +2612,13 @@ class MoveIntelligence:
         
         white_captures = self._calculate_captures_score(chess.WHITE)
         black_captures = self._calculate_captures_score(chess.BLACK)
+        
+        # v0.1.01: Add pawn structure and queen development evaluations
+        white_pawn_structure = self._calculate_pawn_structure_score(chess.WHITE)
+        black_pawn_structure = self._calculate_pawn_structure_score(chess.BLACK)
+        
+        white_queen_dev = self._calculate_queen_development_score(chess.WHITE)
+        black_queen_dev = self._calculate_queen_development_score(chess.BLACK)
         
         # Get threat analysis for detailed breakdown
         white_threats = self._get_threat_analysis(chess.WHITE)
@@ -1919,17 +2641,23 @@ class MoveIntelligence:
             'white_captures': white_captures,
             'black_captures': black_captures,
             'captures_difference': white_captures - black_captures,
+            'white_pawn_structure': white_pawn_structure,
+            'black_pawn_structure': black_pawn_structure, 
+            'pawn_structure_difference': white_pawn_structure - black_pawn_structure,
+            'white_queen_development': white_queen_dev,
+            'black_queen_development': black_queen_dev,
+            'queen_development_difference': white_queen_dev - black_queen_dev,
             'white_threat_penalty': white_threats['total_threat_penalty'],
             'black_threat_penalty': black_threats['total_threat_penalty'],
             'white_pieces_under_threat': white_threats['pieces_under_threat'],
             'black_pieces_under_threat': black_threats['pieces_under_threat'],
             'threat_difference': black_threats['total_threat_penalty'] - white_threats['total_threat_penalty'],
-            'white_significant_squares': len(white_captures_analysis['significant_squares']),
-            'white_controlled_squares': white_captures_analysis['controlled_squares'],
-            'white_threatened_pieces': white_captures_analysis['threatened_pieces'],
-            'black_significant_squares': len(black_captures_analysis['significant_squares']),
-            'black_controlled_squares': black_captures_analysis['controlled_squares'],
-            'black_threatened_pieces': black_captures_analysis['threatened_pieces'],
+            'white_winning_captures': len(white_captures_analysis['winning_captures']),
+            'white_total_captures': white_captures_analysis['total_captures'],
+            'white_captures_score': white_captures_analysis['total_score'],
+            'black_winning_captures': len(black_captures_analysis['winning_captures']),
+            'black_total_captures': black_captures_analysis['total_captures'],
+            'black_captures_score': black_captures_analysis['total_score'],
             'total_evaluation': self._evaluate_position(),
             'current_player_advantage': self._evaluate_position()
         }
