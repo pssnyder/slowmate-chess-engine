@@ -2,72 +2,133 @@
 
 **Version**: 0.1.02  
 **Focus**: Opening book integration and endgame checkmate patterns  
-**Status**: 🟡 **PLANNING**  
+**Status**: � **ACTIVE DEVELOPMENT**  
 **Previous**: 0.1.01 - Tactical Enhancements (SEE-based evaluation, pawn structure, queen discipline)  
-**Target Date**: TBD
+**Target Date**: Phase 1 Complete by End of July 2025
 
 ## Overview
 
-This document outlines the planned enhancements for SlowMate v0.1.02, focusing on adding opening book knowledge and fundamental endgame checkmate patterns. These additions will provide the engine with principled opening play and reliable endgame technique.
+This document outlines the comprehensive enhancements for SlowMate v0.1.02, focusing on intelligent opening book knowledge and strategic endgame pattern recognition. These systems will be fully independent, fast-access move reference libraries designed for easy expansion and testing isolation.
 
-**Key Goals**: 
-- Implement a curated opening book for improved early-game play
-- Add essential checkmate patterns (Queen+King, Rook+King, Two Rooks)  
-- Maintain the tactical excellence achieved in v0.1.01
-- Ensure smooth integration with existing evaluation system
+**Core Philosophy**:
+- **Independent modules**: Opening and endgame libraries operate as standalone components
+- **Performance optimized**: Quick lookup with minimal memory footprint
+- **Dynamically adaptive**: Positional-based responses rather than rigid opening adherence
+- **Comprehensive coverage**: Mainlines, sidelines, and edge cases for tournament readiness
 
-## 🎯 Planned Features
+## 🎯 Detailed Feature Requirements
 
-### 1. Opening Book Integration
-- **Opening database**: Curated collection of sound opening principles and common lines
-- **Book format**: Implement standard opening book format (Polyglot or custom JSON)
-- **Move selection**: Intelligent book move selection with variation support
-- **Transposition handling**: Handle move order transpositions correctly
-- **Book exits**: Smooth transition from book moves to tactical evaluation
+### 1. Opening Book System - "Solved Position Library"
 
-### 2. Essential Endgame Patterns
-- **Basic checkmates**: Queen+King vs King, Rook+King vs King
-- **Two rooks checkmate**: Coordination of major pieces for mate
-- **Endgame evaluation**: Enhanced evaluation for known theoretical positions
-- **Mating technique**: Systematic approach to driving enemy king to mate
-- **Stalemate prevention**: Avoid stalemate traps in winning endgames
+#### **Coverage Depth Strategy**
+- **Mainlines (10+ moves)**: Complete coverage until position stability or clear advantage
+- **Sidelines (8+ moves)**: Initial variation support for major alternatives  
+- **Edge Cases (3-5 moves)**: Fast bypass for challenging opening evaluations
+- **Universal Base (1-2 moves)**: All major starting positions covered for both colors
 
-### 3. Knowledge Base Architecture
-- **Modular design**: Separate opening and endgame knowledge modules
-- **Performance optimization**: Fast lookup for both opening and endgame positions
-- **Memory efficiency**: Compact representation of chess knowledge
-- **Debug support**: Rich debugging information for knowledge base usage
+#### **Weighted Opening Preferences**
+- **White Preferences**: London System, Queen's Gambit, Vienna Game
+- **Black Preferences**: Caro-Kann, French Defense, Dutch Defense, King's Indian Defense
+- **Dynamic Adaptation**: Positional best-response over rigid color-based selection
+- **Cross-Color Flexibility**: Engine can play Queen's Gambit acceptance/decline as Black if positionally sound
+
+#### **Intelligent Selection Logic**
+- **Positional Priority**: Best move based on position analysis, not memorized sequences
+- **Weighted Randomness**: Preference-guided selection with variety for tournament play
+- **Transposition Handling**: Smart move-order independence
+- **Anti-Repetition**: Built-in variation to prevent identical games in sequential play
+
+### 2. Endgame Pattern System - "Checkmate Preparation Library"
+
+#### **Strategic Mating Concepts**
+- **"Closing the Box"**: Two-rook coordination for systematic king restriction
+- **Back-Rank Tactics**: Rook + advancing pawn promotion checkmates (6+ moves ahead)
+- **King & Pawn Escorts**: Coordinated king support for pawn promotion
+- **Passed Pawn Creation**: Strategic pawn advancement in pawn endgames
+
+#### **Advanced Endgame Theory**
+- **King Positioning**: Optimal king placement for pawn defense/support
+- **Pawn Challenge Strategy**: Which pawns to advance/exchange in complex pawn endings
+- **Pre-Mate Setup**: Position pieces for future checkmate detection (extends current 3-move horizon)
+- **Zugzwang Recognition**: [Parking Lot] Advanced positional constraint detection
+
+#### **Integration with Tactical System**
+- **Extended Mate Horizon**: Prepare positions 4-6 moves before tactical detection kicks in
+- **Strategic Piece Placement**: Guide pieces toward optimal mating configurations
+- **Pawn Structure Optimization**: Endgame-specific pawn evaluation bonuses
 
 ## 📋 Success Metrics
 
 This version will be considered successful when:
 
-1. **✅ Opening improvement**: Engine demonstrates principled opening play vs random/tactical-only moves
-2. **✅ Endgame mastery**: Reliably executes basic checkmates from any position
-3. **✅ Performance maintenance**: No significant slowdown in middle-game tactical evaluation  
-4. **✅ Integration success**: Knowledge base integrates seamlessly with existing engine
-5. **✅ Validation testing**: Defeats v0.1.01 consistently across all game phases
+1. **✅ Comprehensive Opening Coverage**: Engine demonstrates book knowledge across all major openings
+   - 100% coverage for first 1-2 moves from any starting position
+   - Intelligent preference-weighted selection (London, QG, Vienna as White; Caro-Kann, French, Dutch, KID as Black)
+   - Dynamic cross-color adaptation (can defend against preferred openings)
+
+2. **✅ Strategic Endgame Preparation**: Systematic approach to winning endgames
+   - "Closing the box" two-rook coordination
+   - Back-rank mate setup with rook + promoting pawn (6+ moves ahead)
+   - King & pawn escort techniques for promotion
+   - Passed pawn creation in complex pawn endings
+
+3. **✅ Performance Excellence**: No degradation of existing tactical strength
+   - Opening book lookup < 1ms average response time
+   - Zero memory leaks or performance regression in middle-game evaluation
+   - Maintains v0.1.01 tactical superiority in all positions
+
+4. **✅ Tournament Readiness**: Dynamic, varied, competitive play
+   - Anti-repetition: Different opening choices in sequential games
+   - Weighted randomness prevents predictable play patterns
+   - Defeats v0.1.01 across opening, middle-game, and endgame phases
+
+5. **✅ Integration Success**: Seamless knowledge base coordination
+   - Smooth transitions: Book → Tactical → Endgame pattern recognition
+   - Debug visibility for all knowledge base decisions
+   - Independent module testing and isolation capabilities
 
 ## 🏗️ Technical Architecture
 
-### Opening Book Module
+### Opening Book Module Design
 ```
 slowmate/
 ├── knowledge/
 │   ├── __init__.py
-│   ├── opening_book.py      # Opening book logic
-│   ├── endgame_patterns.py  # Checkmate patterns
-│   └── knowledge_base.py    # Unified knowledge interface
+│   ├── opening_book.py          # Core opening logic & position lookup
+│   ├── opening_weights.py       # Preference weighting system
+│   ├── endgame_patterns.py      # Strategic endgame preparation
+│   ├── endgame_tactics.py       # Checkmate pattern recognition
+│   └── knowledge_base.py        # Unified knowledge interface
 ├── data/
-│   ├── opening_book.json    # Opening move database
-│   └── endgame_tables.json  # Endgame pattern definitions
+│   ├── openings/
+│   │   ├── mainlines.json       # 10+ move mainline coverage
+│   │   ├── sidelines.json       # 8+ move sideline variations
+│   │   ├── edge_cases.json      # 3-5 move challenging positions
+│   │   └── preferences.json     # Opening weights & preferences
+│   └── endgames/
+│       ├── mate_patterns.json   # Systematic mating procedures
+│       ├── pawn_endings.json    # King & pawn coordination
+│       └── tactical_setups.json # Pre-mate positioning guides
 ```
 
-### Integration Points
-- **Move Selection**: Priority order: Book moves → Tactical evaluation → Search
-- **Evaluation Enhancement**: Endgame pattern bonuses integrated with existing tactical system
-- **Debug Integration**: Knowledge base decisions visible in evaluation details
-- **UCI Compatibility**: Optional book disable for testing pure tactical play
+### Integration Architecture
+```python
+class MoveIntelligence:
+    def select_best_move(self, legal_moves):
+        # Priority order with fallback
+        if opening_move := self.opening_book.get_book_move():
+            return opening_move
+        elif endgame_move := self.endgame_patterns.get_strategic_move():
+            return endgame_move
+        else:
+            return self.tactical_evaluation.evaluate_moves(legal_moves)
+```
+
+### Performance & Testing Design
+- **Isolation Toggles**: Individual module disable via DEBUG_CONFIG
+- **Fast Lookup**: Hash-based position recognition (O(1) average case)
+- **Memory Efficiency**: Compressed move notation and shared position data
+- **Hot-Swappable**: Runtime book updates without engine restart
 
 ## 🧪 Testing Strategy
 
