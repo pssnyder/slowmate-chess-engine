@@ -13,21 +13,22 @@ SlowMate is designed as a step-by-step learning project where each feature is im
 
 ## Current Status
 
-🏆 **FIRST TOURNAMENT VICTORY - Engine vs Engine Success!** 🏆
+� **TACTICAL MASTERY ACHIEVED - Revolutionary Evaluation System!** �
 
-**MAJOR MILESTONE ACHIEVED**: SlowMate has successfully completed its first engine-vs-engine tournament game with a decisive 1-0 victory! The engine demonstrated strong tactical intelligence, strategic understanding, and precise endgame technique in a complex Scandinavian Defense game.
+**MAJOR BREAKTHROUGH**: SlowMate has successfully modernized its tactical evaluation system with SEE-based logic, achieving a decisive 20-move victory over the previous version and completely resolving the original tactical bug!
 
-### Current Version: 0.0.12 (Enhanced UCI Integration) ✅ **TOURNAMENT VALIDATED**  
-- **Engine ID**: slowmate_0.0.12_tournament_ready
-- **Latest Achievement**: **First competitive tournament victory** (July 20, 2025)
-- **Game Result**: 1-0 in 51 moves vs opponent engine
-- **Tournament Status**: **FULLY COMPETITIVE** ✅
+### Current Version: 0.1.01 (Tactical Enhancements) ✅ **BETA READY**  
+- **Engine ID**: slowmate_v0.1.01_beta_tactical_enhancements
+- **Latest Achievement**: **Complete tactical system overhaul** (July 20, 2025)
+- **Game Result**: Decisive 20-move forced resignation victory vs v0.1.0
+- **Status**: **BETA TESTING READY** ✅
 
 ### Completed Features
-- 🏁 **FIRST TOURNAMENT VICTORY** (July 20, 2025): Decisive 1-0 win in engine-vs-engine competition!
-- ✅ **Enhanced UCI Integration (Document 12 - Version 0.0.12)**: Tournament-ready with real-time analysis and advanced search statistics!
-- ✅ **Depth Search Implementation (Document 11 - Version 0.0.11d)**: Unified minimax, alpha-beta pruning, and quiescence search!
-- ✅ **Tactical Intelligence System (Document 10 - Version 0.0.10)**: Complete tactical mastery with threats, captures, attack patterns, and coordination!
+- � **TACTICAL SYSTEM REVOLUTION** (July 20, 2025): Modern SEE-based evaluation, unified tactical combinations, complete bug resolution!
+- ✅ **Advanced Pawn Structure Analysis**: Comprehensive pawn evaluation with passed pawn bonuses and structural penalties
+- ✅ **Queen Development Discipline**: Smart penalties for premature queen moves and early trades  
+- ✅ **Modern Threat Evaluation**: SEE-based threat system replacing punitive penalty logic
+- ✅ **Tournament Victory Foundation (Version 0.1.0)**: First competitive tournament win establishing baseline strength
 - ✅ **King Safety Evaluation (Document 09 - Version 0.0.08)**: Castling rights, castling status, and pawn shield analysis!
 - ✅ **Complete PST system (Document 08 - Version 0.0.07)**: Universal → Piece-specific → Game phase aware!
 - ✅ **Material evaluation system (Document 07 - Version 0.0.06)**: Strategic piece value assessment!
