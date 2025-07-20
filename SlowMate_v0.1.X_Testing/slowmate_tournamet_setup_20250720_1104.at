@@ -3,7 +3,7 @@ TournamentName=Slowmate Tournament 20250720_1104
 Type=0
 CurrSwissRound=0
 Rounds=10
-CurrentPair=1
+CurrentPair=3
 CurrentRound=3
 Level=5 -1\5/-1#5@-1|5
 [Options]
@@ -67,11 +67,11 @@ Website=
 E-Mail=
 ArenaVersion=Arena 3.5.1
 LastGameDate=2025.07.20
-LastGameTime=11:16:19
+LastGameTime=11:17:56
 [PairingResults]
 Slowmate_current ------ Slowmate_v0.1.0=111
-Slowmate_v0.1.01_beta ------ Stockfish=00
-Slowmate_current ------ Slowmate_v0.1.01_beta=10
+Slowmate_v0.1.01_beta ------ Stockfish=000
+Slowmate_current ------ Slowmate_v0.1.01_beta=101
 Slowmate_v0.1.0 ------ Stockfish=00
 Slowmate_current ------ Stockfish=00
 Slowmate_v0.1.0 ------ Slowmate_v0.1.01_beta=00
