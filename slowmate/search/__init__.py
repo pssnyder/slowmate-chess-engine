@@ -66,6 +66,30 @@ class SearchConfig:
     enable_counter_aging: bool = True
     counter_age_frequency: int = 50
     
+    # Phase 4: Advanced Pruning Algorithms
+    # Late Move Reduction (LMR)
+    enable_lmr: bool = True
+    lmr_min_depth: int = 3
+    lmr_min_move_number: int = 4
+    lmr_max_reduction: int = 3
+    lmr_pv_reduction_limit: int = 1
+    
+    # Null Move Pruning
+    enable_null_move_pruning: bool = True
+    null_move_min_depth: int = 2
+    null_move_reduction: int = 3
+    enable_null_move_verification: bool = True
+    
+    # Futility Pruning
+    enable_futility_pruning: bool = True
+    futility_max_depth: int = 3
+    futility_base_margin: int = 100
+    futility_depth_margin: int = 150
+    enable_extended_futility: bool = True
+    extended_futility_max_depth: int = 6
+    extended_futility_margin: int = 300
+    enable_move_count_pruning: bool = True
+    
     # Memory configuration
     max_search_depth: int = 64  # For killer move table sizing
     
@@ -92,6 +116,21 @@ class SearchConfig:
             'CounterMinConfidence': {'type': 'spin', 'default': self.counter_min_confidence, 'min': 1, 'max': 10},
             'BaseDepth': {'type': 'spin', 'default': self.base_depth, 'min': 1, 'max': 20},
             'MaxDepth': {'type': 'spin', 'default': self.max_depth, 'min': 1, 'max': 30},
+            
+            # Phase 4: Advanced Pruning
+            'LateMoveReduction': {'type': 'check', 'default': self.enable_lmr},
+            'LMRMinDepth': {'type': 'spin', 'default': self.lmr_min_depth, 'min': 1, 'max': 10},
+            'LMRMinMoveNumber': {'type': 'spin', 'default': self.lmr_min_move_number, 'min': 2, 'max': 10},
+            'LMRMaxReduction': {'type': 'spin', 'default': self.lmr_max_reduction, 'min': 1, 'max': 5},
+            'NullMovePruning': {'type': 'check', 'default': self.enable_null_move_pruning},
+            'NullMoveMinDepth': {'type': 'spin', 'default': self.null_move_min_depth, 'min': 1, 'max': 5},
+            'NullMoveReduction': {'type': 'spin', 'default': self.null_move_reduction, 'min': 2, 'max': 5},
+            'NullMoveVerification': {'type': 'check', 'default': self.enable_null_move_verification},
+            'FutilityPruning': {'type': 'check', 'default': self.enable_futility_pruning},
+            'FutilityMaxDepth': {'type': 'spin', 'default': self.futility_max_depth, 'min': 1, 'max': 5},
+            'FutilityBaseMargin': {'type': 'spin', 'default': self.futility_base_margin, 'min': 50, 'max': 300},
+            'ExtendedFutility': {'type': 'check', 'default': self.enable_extended_futility},
+            'MoveCountPruning': {'type': 'check', 'default': self.enable_move_count_pruning},
         }
 
 
@@ -120,6 +159,20 @@ class MoveOrderingStats:
     beta_cutoffs_total: int = 0
     first_move_cutoffs: int = 0  # Cutoffs on first move (perfect ordering)
     
+    # Phase 4: Pruning Statistics
+    lmr_reductions: int = 0
+    lmr_re_searches: int = 0
+    null_move_cutoffs: int = 0
+    null_move_attempts: int = 0
+    futility_prunes: int = 0
+    futility_attempts: int = 0
+    move_count_prunes: int = 0
+    
+    # Node reduction estimates
+    nodes_saved_lmr: int = 0
+    nodes_saved_null_move: int = 0
+    nodes_saved_futility: int = 0
+    
     # Effectiveness metrics
     first_move_cutoffs: int = 0
     total_cutoffs: int = 0
@@ -137,6 +190,26 @@ class MoveOrderingStats:
     def hash_hit_rate(self) -> float:
         """Percentage of positions found in transposition table."""
         return (self.hash_hits / max(self.moves_ordered, 1)) * 100
+    
+    @property
+    def lmr_efficiency(self) -> float:
+        """LMR nodes saved per reduction."""
+        return self.nodes_saved_lmr / max(self.lmr_reductions, 1)
+    
+    @property
+    def null_move_efficiency(self) -> float:
+        """Null move cutoff rate."""
+        return (self.null_move_cutoffs / max(self.null_move_attempts, 1)) * 100
+    
+    @property
+    def futility_efficiency(self) -> float:
+        """Futility pruning rate."""
+        return (self.futility_prunes / max(self.futility_attempts, 1)) * 100
+    
+    @property
+    def total_nodes_saved(self) -> int:
+        """Total estimated nodes saved by all pruning techniques."""
+        return self.nodes_saved_lmr + self.nodes_saved_null_move + self.nodes_saved_futility
 
 
 class MovePriority(Enum):
