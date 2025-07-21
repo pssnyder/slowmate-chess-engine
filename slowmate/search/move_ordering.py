@@ -18,6 +18,7 @@ import chess
 from slowmate.search import SearchConfig, MoveOrderingStats, MovePriority, OrderedMove, MoveOrderingDebug
 from slowmate.search.enhanced_see import EnhancedSEE
 from slowmate.search.mvv_lva import MVVLVA
+from slowmate.search.transposition_table import TranspositionTable
 
 
 class MoveOrderingEngine:
@@ -31,6 +32,11 @@ class MoveOrderingEngine:
         self.see_evaluator = EnhancedSEE(config) if config.enable_see_evaluation else None
         self.mvv_lva = MVVLVA() if config.enable_mvv_lva else None
         
+        # Initialize transposition table
+        self.transposition_table = None
+        if config.enable_transposition_table:
+            self.transposition_table = TranspositionTable(config.transposition_table_mb)
+        
         # Future heuristics will be initialized here
         self.killer_moves: Dict[int, List[chess.Move]] = {}  # depth -> killer moves
         self.history_table: Dict[Tuple[int, int], int] = {}  # (from, to) -> success count
@@ -41,6 +47,19 @@ class MoveOrderingEngine:
         self.stats.reset()
         if self.see_evaluator:
             self.see_evaluator.clear_cache()
+        if self.transposition_table:
+            self.transposition_table.new_search()
+    
+    def clear_transposition_table(self):
+        """Clear the transposition table."""
+        if self.transposition_table:
+            self.transposition_table.clear()
+    
+    def get_hash_move(self, board: chess.Board) -> Optional[chess.Move]:
+        """Get hash move from transposition table."""
+        if self.transposition_table and self.config.enable_hash_moves:
+            return self.transposition_table.get_hash_move(board)
+        return None
     
     def order_moves(self, board: chess.Board, moves: List[chess.Move], 
                    depth: int = 0, hash_move: Optional[chess.Move] = None,

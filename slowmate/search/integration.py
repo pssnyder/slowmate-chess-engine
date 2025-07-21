@@ -49,12 +49,16 @@ class SearchIntegration:
             self.config.enable_see_evaluation = options['SEEEvaluation']
         if 'SEEMaxDepth' in options:
             self.config.see_max_depth = options['SEEMaxDepth']
+        if 'TranspositionTable' in options:
+            self.config.enable_transposition_table = options['TranspositionTable']
+        if 'TranspositionTableMB' in options:
+            self.config.transposition_table_mb = options['TranspositionTableMB']
+        if 'HashMoves' in options:
+            self.config.enable_hash_moves = options['HashMoves']
         if 'BaseDepth' in options:
             self.config.base_depth = options['BaseDepth']
         if 'MaxDepth' in options:
             self.config.max_depth = options['MaxDepth']
-        if 'TranspositionTableMB' in options:
-            self.config.transposition_table_mb = options['TranspositionTableMB']
         
         # Recreate move ordering engine with new config
         self.move_ordering = MoveOrderingEngine(self.config)
@@ -83,6 +87,11 @@ class SearchIntegration:
         
         if len(legal_moves) <= 1:
             return legal_moves  # No need to order single move
+        
+        # Get hash move from transposition table
+        hash_move = None
+        if self.config.enable_transposition_table and self.config.enable_hash_moves:
+            hash_move = self.move_ordering.get_hash_move(board)
         
         # Order moves using new system
         ordered_move_objects = self.move_ordering.order_moves(
@@ -182,3 +191,73 @@ class SearchIntegration:
             return self.move_ordering.mvv_lva.classify_capture_simple(board, move)
         else:
             return 'unknown'
+    
+    def store_transposition(self, board: chess.Board, depth: int, score: int, 
+                           bound_type: str, best_move: Optional[chess.Move] = None):
+        """
+        Store position in transposition table.
+        
+        Args:
+            board: Current board position
+            depth: Search depth
+            score: Position evaluation  
+            bound_type: 'exact', 'lower', or 'upper'
+            best_move: Best move found
+        """
+        if not self.move_ordering.transposition_table:
+            return
+            
+        # Convert bound type string to enum
+        from slowmate.search.transposition_table import BoundType
+        bound_map = {
+            'exact': BoundType.EXACT,
+            'lower': BoundType.LOWER_BOUND,
+            'upper': BoundType.UPPER_BOUND
+        }
+        
+        bound_enum = bound_map.get(bound_type, BoundType.EXACT)
+        self.move_ordering.transposition_table.store(board, depth, score, bound_enum, best_move)
+    
+    def lookup_transposition(self, board: chess.Board, depth: int, alpha: int, beta: int):
+        """
+        Look up position in transposition table.
+        
+        Args:
+            board: Current board position
+            depth: Required search depth
+            alpha: Current alpha value
+            beta: Current beta value
+            
+        Returns:
+            Tuple of (score, best_move, hit_type)
+        """
+        if not self.move_ordering.transposition_table:
+            return None, None, 'miss'
+            
+        return self.move_ordering.transposition_table.lookup(board, depth, alpha, beta)
+    
+    def get_principal_variation(self, board: chess.Board, max_depth: int = 10) -> List[chess.Move]:
+        """
+        Get principal variation from transposition table.
+        
+        Args:
+            board: Starting board position
+            max_depth: Maximum PV depth
+            
+        Returns:
+            List of moves in principal variation
+        """
+        if not self.move_ordering.transposition_table:
+            return []
+            
+        return self.move_ordering.transposition_table.get_principal_variation(board, max_depth)
+    
+    def clear_transposition_table(self):
+        """Clear the transposition table."""
+        self.move_ordering.clear_transposition_table()
+    
+    def get_transposition_stats(self) -> Dict[str, Any]:
+        """Get transposition table statistics."""
+        if self.move_ordering.transposition_table:
+            return self.move_ordering.transposition_table.get_statistics()
+        return {}

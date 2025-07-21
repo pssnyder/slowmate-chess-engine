@@ -35,6 +35,11 @@ class SearchConfig:
     enable_history_heuristic: bool = True
     enable_counter_moves: bool = True
     
+    # Transposition table configuration
+    enable_transposition_table: bool = True
+    transposition_table_mb: int = 64
+    enable_hash_moves: bool = True
+    
     # SEE configuration
     see_max_depth: int = 10  # Until no more captures by default
     see_time_limit_ms: Optional[int] = None  # Time control override
@@ -45,7 +50,6 @@ class SearchConfig:
     quiescence_depth: int = 8
     
     # Memory configuration
-    transposition_table_mb: int = 64
     killer_move_slots: int = 2
     
     # Knowledge base integration
@@ -60,9 +64,11 @@ class SearchConfig:
             'MoveOrdering': {'type': 'check', 'default': self.enable_move_ordering},
             'SEEEvaluation': {'type': 'check', 'default': self.enable_see_evaluation},
             'SEEMaxDepth': {'type': 'spin', 'default': self.see_max_depth, 'min': 1, 'max': 20},
+            'TranspositionTable': {'type': 'check', 'default': self.enable_transposition_table},
+            'TranspositionTableMB': {'type': 'spin', 'default': self.transposition_table_mb, 'min': 1, 'max': 1024},
+            'HashMoves': {'type': 'check', 'default': self.enable_hash_moves},
             'KillerMoves': {'type': 'check', 'default': self.enable_killer_moves},
             'HistoryHeuristic': {'type': 'check', 'default': self.enable_history_heuristic},
-            'TranspositionTableMB': {'type': 'spin', 'default': self.transposition_table_mb, 'min': 1, 'max': 1024},
             'BaseDepth': {'type': 'spin', 'default': self.base_depth, 'min': 1, 'max': 20},
             'MaxDepth': {'type': 'spin', 'default': self.max_depth, 'min': 1, 'max': 30},
         }
