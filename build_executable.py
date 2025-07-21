@@ -11,7 +11,7 @@ from pathlib import Path
 
 def build_executable():
     """Build the SlowMate executable using PyInstaller."""
-    print("🔧 Building SlowMate Chess Engine v0.1.0 Executable")
+    print("🔧 Building SlowMate Chess Engine v0.2.01 Executable")
     print("=" * 60)
     
     # Get version info
@@ -31,6 +31,18 @@ def build_executable():
         "--hidden-import", "slowmate.engine",
         "--hidden-import", "slowmate.intelligence", 
         "--hidden-import", "slowmate.depth_search",
+        "--hidden-import", "slowmate.search",
+        "--hidden-import", "slowmate.search.move_ordering",
+        "--hidden-import", "slowmate.search.see_evaluation", 
+        "--hidden-import", "slowmate.search.transposition_table",
+        "--hidden-import", "slowmate.search.zobrist_hashing",
+        "--hidden-import", "slowmate.search.killer_moves",
+        "--hidden-import", "slowmate.search.history_heuristic",
+        "--hidden-import", "slowmate.search.counter_moves",
+        "--hidden-import", "slowmate.search.late_move_reduction",
+        "--hidden-import", "slowmate.search.null_move_pruning",
+        "--hidden-import", "slowmate.search.futility_pruning",
+        "--hidden-import", "slowmate.search.integration",
         "--hidden-import", "chess",
         "--console",                    # Console application
         "--clean",                      # Clean build
