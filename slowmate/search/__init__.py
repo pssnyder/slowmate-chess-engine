@@ -49,8 +49,25 @@ class SearchConfig:
     max_depth: int = 12
     quiescence_depth: int = 8
     
-    # Memory configuration
+    # Killer move configuration
     killer_move_slots: int = 2
+    killer_max_age: int = 4
+    enable_killer_aging: bool = True
+    
+    # History heuristic configuration
+    history_aging_threshold: int = 32768
+    history_aging_factor: int = 2
+    history_min_significant: int = 4
+    
+    # Counter move configuration
+    counter_min_confidence: int = 3
+    counter_max_confidence: int = 100
+    counter_decay_factor: float = 0.95
+    enable_counter_aging: bool = True
+    counter_age_frequency: int = 50
+    
+    # Memory configuration
+    max_search_depth: int = 64  # For killer move table sizing
     
     # Knowledge base integration
     knowledge_base_priority: int = 100  # Lower than heuristics, higher than random
@@ -68,7 +85,11 @@ class SearchConfig:
             'TranspositionTableMB': {'type': 'spin', 'default': self.transposition_table_mb, 'min': 1, 'max': 1024},
             'HashMoves': {'type': 'check', 'default': self.enable_hash_moves},
             'KillerMoves': {'type': 'check', 'default': self.enable_killer_moves},
+            'KillerMaxAge': {'type': 'spin', 'default': self.killer_max_age, 'min': 1, 'max': 10},
             'HistoryHeuristic': {'type': 'check', 'default': self.enable_history_heuristic},
+            'HistoryAgingThreshold': {'type': 'spin', 'default': self.history_aging_threshold, 'min': 1000, 'max': 100000},
+            'CounterMoves': {'type': 'check', 'default': self.enable_counter_moves},
+            'CounterMinConfidence': {'type': 'spin', 'default': self.counter_min_confidence, 'min': 1, 'max': 10},
             'BaseDepth': {'type': 'spin', 'default': self.base_depth, 'min': 1, 'max': 20},
             'MaxDepth': {'type': 'spin', 'default': self.max_depth, 'min': 1, 'max': 30},
         }
@@ -82,12 +103,22 @@ class MoveOrderingStats:
     see_evaluations: int = 0
     killer_hits: int = 0
     history_hits: int = 0
+    counter_hits: int = 0
     hash_hits: int = 0
     knowledge_base_hits: int = 0
     
     # Performance metrics
     ordering_time_ms: float = 0.0
     see_time_ms: float = 0.0
+    
+    # Heuristic effectiveness
+    killer_cutoffs: int = 0
+    history_cutoffs: int = 0
+    counter_cutoffs: int = 0
+    
+    # Search efficiency
+    beta_cutoffs_total: int = 0
+    first_move_cutoffs: int = 0  # Cutoffs on first move (perfect ordering)
     
     # Effectiveness metrics
     first_move_cutoffs: int = 0

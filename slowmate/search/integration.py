@@ -122,16 +122,17 @@ class SearchIntegration:
         """
         self.move_ordering.store_killer_move(move, depth, board)
     
-    def update_history(self, move: chess.Move, depth: int, success: bool):
+    def update_history(self, move: chess.Move, depth: int, color: bool, success: bool):
         """
         Update history heuristic.
         
         Args:
             move: Move to update
             depth: Search depth
+            color: Player color
             success: Whether move caused cutoff
         """
-        self.move_ordering.update_history(move, depth, success)
+        self.move_ordering.update_history(move, depth, color, success)
     
     def store_counter_move(self, opponent_move: chess.Move, counter_move: chess.Move):
         """
@@ -143,9 +144,25 @@ class SearchIntegration:
         """
         self.move_ordering.store_counter_move(opponent_move, counter_move)
     
-    def get_move_ordering_stats(self) -> MoveOrderingStats:
-        """Get move ordering statistics."""
-        return self.move_ordering.get_statistics()
+    def get_move_ordering_stats(self) -> Dict[str, Any]:
+        """Get move ordering statistics as dictionary."""
+        stats = self.move_ordering.get_statistics()
+        return {
+            'moves_ordered': stats.moves_ordered,
+            'see_evaluations': stats.see_evaluations,
+            'killer_hits': stats.killer_hits,
+            'history_hits': stats.history_hits,
+            'counter_hits': stats.counter_hits,
+            'hash_hits': stats.hash_hits,
+            'knowledge_base_hits': stats.knowledge_base_hits,
+            'ordering_time_ms': stats.ordering_time_ms,
+            'see_time_ms': stats.see_time_ms,
+            'killer_cutoffs': stats.killer_cutoffs,
+            'history_cutoffs': stats.history_cutoffs,
+            'counter_cutoffs': stats.counter_cutoffs,
+            'beta_cutoffs_total': stats.beta_cutoffs_total,
+            'first_move_cutoffs': stats.first_move_cutoffs
+        }
     
     def get_integration_stats(self) -> Dict[str, Any]:
         """Get integration statistics."""
@@ -155,7 +172,7 @@ class SearchIntegration:
         if stats['ordered_positions'] > 0:
             move_ordering_stats = self.get_move_ordering_stats()
             stats['average_ordering_time_ms'] = (
-                move_ordering_stats.ordering_time_ms / stats['ordered_positions']
+                move_ordering_stats['ordering_time_ms'] / stats['ordered_positions']
             )
             stats['average_moves_per_position'] = (
                 stats['total_moves_ordered'] / stats['ordered_positions']
@@ -252,6 +269,34 @@ class SearchIntegration:
             
         return self.move_ordering.transposition_table.get_principal_variation(board, max_depth)
     
+    def record_search_result(self, move: chess.Move, board: chess.Board, depth: int, 
+                           caused_cutoff: bool = False, last_opponent_move: Optional[chess.Move] = None):
+        """
+        Record search result for learning heuristics.
+        
+        Args:
+            move: Move that was played
+            board: Board position after move
+            depth: Search depth
+            caused_cutoff: Whether this move caused a beta cutoff
+            last_opponent_move: Opponent's last move (for counter moves)
+        """
+        # Record killer move if it caused a cutoff
+        if caused_cutoff and not board.is_capture(move):
+            self.move_ordering.store_killer_move(move, depth, board)
+        
+        # Update history heuristic
+        color = not board.turn  # Color of the player who made the move
+        self.move_ordering.update_history(move, depth, color, caused_cutoff)
+        
+        # Store counter move if we have opponent's last move
+        if last_opponent_move and caused_cutoff:
+            self.move_ordering.store_counter_move(last_opponent_move, move, success=True)
+    
+    def start_new_search(self):
+        """Start a new search - reset state and age heuristics."""
+        self.move_ordering.reset_for_search()
+    
     def clear_transposition_table(self):
         """Clear the transposition table."""
         self.move_ordering.clear_transposition_table()
@@ -261,3 +306,25 @@ class SearchIntegration:
         if self.move_ordering.transposition_table:
             return self.move_ordering.transposition_table.get_statistics()
         return {}
+    
+    def get_killer_statistics(self) -> Dict[str, Any]:
+        """Get killer move statistics."""
+        return self.move_ordering.get_killer_statistics() or {}
+    
+    def get_history_statistics(self) -> Dict[str, Any]:
+        """Get history heuristic statistics."""
+        return self.move_ordering.get_history_statistics() or {}
+    
+    def get_counter_statistics(self) -> Dict[str, Any]:
+        """Get counter move statistics."""
+        return self.move_ordering.get_counter_statistics() or {}
+    
+    def get_all_heuristic_stats(self) -> Dict[str, Any]:
+        """Get comprehensive statistics from all heuristics."""
+        return {
+            'move_ordering': self.get_move_ordering_stats(),
+            'transposition_table': self.get_transposition_stats(),
+            'killer_moves': self.get_killer_statistics(),
+            'history_heuristic': self.get_history_statistics(),
+            'counter_moves': self.get_counter_statistics()
+        }

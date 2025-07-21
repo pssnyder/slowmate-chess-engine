@@ -19,6 +19,9 @@ from slowmate.search import SearchConfig, MoveOrderingStats, MovePriority, Order
 from slowmate.search.enhanced_see import EnhancedSEE
 from slowmate.search.mvv_lva import MVVLVA
 from slowmate.search.transposition_table import TranspositionTable
+from slowmate.search.killer_moves import KillerMoveTable
+from slowmate.search.history_heuristic import HistoryTable
+from slowmate.search.counter_moves import CounterMoveTable
 
 
 class MoveOrderingEngine:
@@ -37,18 +40,46 @@ class MoveOrderingEngine:
         if config.enable_transposition_table:
             self.transposition_table = TranspositionTable(config.transposition_table_mb)
         
-        # Future heuristics will be initialized here
-        self.killer_moves: Dict[int, List[chess.Move]] = {}  # depth -> killer moves
-        self.history_table: Dict[Tuple[int, int], int] = {}  # (from, to) -> success count
-        self.counter_moves: Dict[chess.Move, chess.Move] = {}  # opponent_move -> counter
+        # Initialize Phase 3 heuristics
+        self.killer_moves = None
+        if config.enable_killer_moves:
+            self.killer_moves = KillerMoveTable(config.max_search_depth)
+            self.killer_moves.configure(
+                max_age_threshold=config.killer_max_age,
+                enable_aging=config.enable_killer_aging
+            )
+        
+        self.history_table = None
+        if config.enable_history_heuristic:
+            self.history_table = HistoryTable()
+            self.history_table.configure(
+                aging_threshold=config.history_aging_threshold,
+                aging_factor=config.history_aging_factor,
+                min_significant_value=config.history_min_significant
+            )
+        
+        self.counter_moves = None
+        if config.enable_counter_moves:
+            self.counter_moves = CounterMoveTable()
+            self.counter_moves.configure(
+                min_confidence=config.counter_min_confidence,
+                max_confidence=config.counter_max_confidence,
+                decay_factor=config.counter_decay_factor,
+                enable_aging=config.enable_counter_aging,
+                age_frequency=config.counter_age_frequency
+            )
         
     def reset_for_search(self):
         """Reset move ordering state for new search."""
-        self.stats.reset()
+        self.stats = MoveOrderingStats()
         if self.see_evaluator:
             self.see_evaluator.clear_cache()
-        if self.transposition_table:
-            self.transposition_table.new_search()
+        
+        # Start new search for heuristics
+        if self.killer_moves:
+            self.killer_moves.new_search()
+        if self.counter_moves:
+            self.counter_moves.new_search()
     
     def clear_transposition_table(self):
         """Clear the transposition table."""
@@ -165,8 +196,8 @@ class MoveOrderingEngine:
                 source="counter_move"
             )
         
-        # 7. History heuristic (future implementation)
-        history_score = self._get_history_score(move)
+        # 7. History heuristic
+        history_score = self._get_history_score(move, board.turn)
         if history_score > 0:
             return OrderedMove(
                 move=move,
@@ -253,13 +284,13 @@ class MoveOrderingEngine:
         Returns:
             Priority value (0 if not a killer move)
         """
-        if not self.config.enable_killer_moves or depth not in self.killer_moves:
+        if not self.config.enable_killer_moves or not self.killer_moves:
             return 0
-            
-        killers = self.killer_moves[depth]
+        
+        killers = self.killer_moves.get_killers(depth)
         if not killers:
             return 0
-            
+        
         if len(killers) > 0 and move == killers[0]:
             self.stats.killer_hits += 1
             return MovePriority.KILLER_MOVE_1.value
@@ -280,26 +311,26 @@ class MoveOrderingEngine:
         Returns:
             True if this is a stored counter move
         """
-        if not self.config.enable_counter_moves:
+        if not self.config.enable_counter_moves or not self.counter_moves:
             return False
             
-        return self.counter_moves.get(last_move) == move
+        return self.counter_moves.is_counter_move(move, last_move)
     
-    def _get_history_score(self, move: chess.Move) -> int:
+    def _get_history_score(self, move: chess.Move, color: bool) -> int:
         """
         Get history heuristic score for a move.
         
         Args:
             move: Move to score
+            color: Player color
             
         Returns:
             History score (0 if no history)
         """
-        if not self.config.enable_history_heuristic:
+        if not self.config.enable_history_heuristic or not self.history_table:
             return 0
             
-        key = (move.from_square, move.to_square)
-        score = self.history_table.get(key, 0)
+        score = self.history_table.get_history_score(move, color)
         
         if score > 0:
             self.stats.history_hits += 1
@@ -330,55 +361,42 @@ class MoveOrderingEngine:
             depth: Search depth where cutoff occurred
             board: Current board position (to check if capture)
         """
-        if not self.config.enable_killer_moves or board.is_capture(move):
-            return  # Only store quiet moves as killers
-            
-        if depth not in self.killer_moves:
-            self.killer_moves[depth] = []
-            
-        killers = self.killer_moves[depth]
+        if not self.config.enable_killer_moves or not self.killer_moves:
+            return
         
-        # Don't store duplicates
-        if move in killers:
+        # Only store quiet moves as killers
+        if board.is_capture(move):
             return
             
-        # Add to front, keep only configured number of slots
-        killers.insert(0, move)
-        if len(killers) > self.config.killer_move_slots:
-            killers.pop()
+        self.killer_moves.store_killer(move, depth)
     
-    def update_history(self, move: chess.Move, depth: int, success: bool):
+    def update_history(self, move: chess.Move, depth: int, color: bool, success: bool):
         """
         Update history heuristic for a move.
         
         Args:
             move: Move to update
             depth: Search depth
+            color: Player color
             success: Whether move was successful (caused cutoff)
         """
-        if not self.config.enable_history_heuristic:
+        if not self.config.enable_history_heuristic or not self.history_table:
             return
             
-        key = (move.from_square, move.to_square)
-        current = self.history_table.get(key, 0)
-        
-        if success:
-            # Increase history score, weighted by depth
-            self.history_table[key] = current + depth * depth
-        else:
-            # Decrease history score slightly
-            self.history_table[key] = max(0, current - 1)
+        self.history_table.record_move(move, color, depth, success)
     
-    def store_counter_move(self, opponent_move: chess.Move, counter_move: chess.Move):
+    def store_counter_move(self, opponent_move: chess.Move, counter_move: chess.Move, 
+                          success: bool = True):
         """
         Store a counter move for opponent's move.
         
         Args:
             opponent_move: Opponent's move
             counter_move: Our best response
+            success: Whether this counter was successful
         """
-        if self.config.enable_counter_moves:
-            self.counter_moves[opponent_move] = counter_move
+        if self.config.enable_counter_moves and self.counter_moves:
+            self.counter_moves.store_counter(opponent_move, counter_move, success)
     
     def _debug_move_ordering(self, ordered_moves: List[OrderedMove]):
         """Debug output for move ordering (removed in production)."""
@@ -389,3 +407,21 @@ class MoveOrderingEngine:
     def get_statistics(self) -> MoveOrderingStats:
         """Get current move ordering statistics."""
         return self.stats
+    
+    def get_killer_statistics(self) -> Optional[Dict[str, float]]:
+        """Get killer move statistics."""
+        if self.killer_moves:
+            return self.killer_moves.get_statistics()
+        return None
+    
+    def get_history_statistics(self) -> Optional[Dict[str, float]]:
+        """Get history heuristic statistics."""
+        if self.history_table:
+            return self.history_table.get_statistics()
+        return None
+    
+    def get_counter_statistics(self) -> Optional[Dict[str, float]]:
+        """Get counter move statistics."""
+        if self.counter_moves:
+            return self.counter_moves.get_statistics()
+        return None
