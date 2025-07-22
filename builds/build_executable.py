@@ -11,22 +11,19 @@ from pathlib import Path
 
 def build_executable():
     """Build the SlowMate executable using PyInstaller."""
-    print("🔧 Building SlowMate Chess Engine v0.2.01 Executable")
+    print("🔧 Building SlowMate Chess Engine v0.2.02 Executable")
     print("=" * 60)
     
     # Get version info
-    sys.path.insert(0, str(Path(__file__).parent))
-    from slowmate import __version__
-    
-    print(f"Version: {__version__}")
-    print(f"Engine: Tournament-Ready SlowMate Depth Engine")
+    print(f"Version: 0.2.02")
+    print(f"Engine: Tournament-Ready SlowMate Time Management Engine")
     print()
     
-    # Build command
+    # Build command with time management system
     cmd = [
         "python", "-m", "PyInstaller",
         "--onefile",                    # Single executable
-        "--name", f"slowmate_v{__version__}",  # Executable name
+        "--name", "slowmate_v0.2.02",  # Executable name
         "--add-data", "slowmate;slowmate",     # Include slowmate package
         "--hidden-import", "slowmate.engine",
         "--hidden-import", "slowmate.intelligence", 
@@ -43,6 +40,21 @@ def build_executable():
         "--hidden-import", "slowmate.search.null_move_pruning",
         "--hidden-import", "slowmate.search.futility_pruning",
         "--hidden-import", "slowmate.search.integration",
+        # Time Management System - Phase 1
+        "--hidden-import", "slowmate.time_management",
+        "--hidden-import", "slowmate.time_management.time_control",
+        "--hidden-import", "slowmate.time_management.time_allocation",
+        "--hidden-import", "slowmate.time_management.search_timeout",
+        "--hidden-import", "slowmate.time_management.time_tracking",
+        # Time Management System - Phase 2
+        "--hidden-import", "slowmate.time_management.iterative_deepening",
+        "--hidden-import", "slowmate.time_management.aspiration_windows",
+        "--hidden-import", "slowmate.time_management.search_controller",
+        # Time Management System - Phase 3
+        "--hidden-import", "slowmate.time_management.dynamic_allocation",
+        "--hidden-import", "slowmate.time_management.emergency_mode",
+        "--hidden-import", "slowmate.time_management.search_extensions",
+        "--hidden-import", "slowmate.time_management.move_overhead",
         "--hidden-import", "chess",
         "--console",                    # Console application
         "--clean",                      # Clean build
@@ -58,7 +70,7 @@ def build_executable():
         print("✅ Build completed successfully!")
         
         # Check if executable exists
-        exe_path = Path("dist") / f"slowmate_v{__version__}.exe"
+        exe_path = Path("dist") / "slowmate_v0.2.02.exe"
         if exe_path.exists():
             size_mb = exe_path.stat().st_size / (1024 * 1024)
             print(f"📦 Executable created: {exe_path}")
@@ -88,16 +100,16 @@ def create_tournament_package():
     """Create a tournament package with executable and documentation."""
     print("\n📦 Creating Tournament Package...")
     
-    from slowmate import __version__
-    package_name = f"SlowMate_v{__version__}_Tournament"
+    version = "0.2.02"  # Hardcoded version for consistency
+    package_name = f"SlowMate_v{version}_Tournament"
     package_dir = Path(package_name)
     
     # Create package directory
     package_dir.mkdir(exist_ok=True)
     
     # Copy executable
-    exe_source = Path("dist") / f"slowmate_v{__version__}.exe"
-    exe_dest = package_dir / f"slowmate_v{__version__}.exe"
+    exe_source = Path("dist") / f"slowmate_v{version}.exe"
+    exe_dest = package_dir / f"slowmate_v{version}.exe"
     
     if exe_source.exists():
         import shutil
@@ -127,17 +139,17 @@ def create_tournament_package():
     
     # Create tournament readme
     tournament_readme = package_dir / "TOURNAMENT_README.txt"
-    with open(tournament_readme, 'w') as f:
-        f.write(f"""SlowMate Chess Engine v{__version__} - Tournament Package
+    with open(tournament_readme, 'w', encoding='utf-8') as f:
+        f.write(f"""SlowMate Chess Engine v{version} - Tournament Package
 ============================================================
 
-🏆 FIRST TOURNAMENT VICTORY ACHIEVED! 🏆
+FIRST TOURNAMENT VICTORY ACHIEVED!
 
 This package contains the tournament-ready SlowMate chess engine
 that achieved its first engine-vs-engine competitive victory.
 
 CONTENTS:
-- slowmate_v{__version__}.exe: Tournament-ready executable
+- slowmate_v{version}.exe: Tournament-ready executable
 - README.md: Complete project documentation  
 - UCI_Integration_Guide.md: Integration instructions
 - first_tournament_game_analysis.md: Victory game analysis
