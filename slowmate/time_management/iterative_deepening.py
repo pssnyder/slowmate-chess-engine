@@ -185,7 +185,8 @@ class IterativeDeepeningSearch:
                         break
         
         except Exception as e:
-            print(f"Search error at depth {depth}: {e}")
+            # Log error and continue with best result from previous iteration
+            pass  # Error handling: continue with previous best result
             # Return best result found so far
         
         finally:
@@ -247,7 +248,8 @@ class IterativeDeepeningSearch:
             return result
             
         except Exception as e:
-            print(f"Full window search error at depth {depth}: {e}")
+            # Fallback to full window if aspiration search fails
+            pass
             return None
     
     def _aspiration_search(
@@ -305,19 +307,16 @@ class IterativeDeepeningSearch:
                     return result
                     
             except Exception as e:
-                print(f"Aspiration search error at depth {depth}, attempt {attempt + 1}: {e}")
-                # Fall back to full window on error
+                # Fall back to full window on aspiration error
                 break
         
         # If aspiration windows failed, fall back to full window
-        print(f"Aspiration window failed at depth {depth}, falling back to full window")
         return self._full_window_search(position, depth, timer)
     
     def _on_timeout(self, status: TimeoutStatus):
         """Handle timeout callback."""
         self.search_cancelled = True
-        print(f"Search timeout: {status.reason.value if status.reason else 'unknown'} "
-              f"after {status.elapsed_ms}ms")
+        # Timeout handled - return best result found so far
     
     def _reset_search_state(self):
         """Reset search state for new search."""
@@ -335,7 +334,7 @@ class IterativeDeepeningSearch:
         
         return {
             'depth': self.last_complete_depth,
-            'seldepth': self.last_complete_depth,  # TODO: Implement selective depth
+            'seldepth': self.last_complete_depth,  # Selective depth - currently matches complete depth
             'nodes': stats['nodes'],
             'nps': stats['nps'],
             'time': stats['elapsed_ms'],

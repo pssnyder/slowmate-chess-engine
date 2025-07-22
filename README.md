@@ -191,22 +191,15 @@ This is primarily a learning project, but suggestions and educational discussion
 
 ---
 
-**Last Updated**: July 20, 2025  
-<<<<<<< HEAD
-**Current Version**: 0.2.0-dev (Complete Move Library System)  
-**Engine ID**: slowmate_v0.2.0_complete_move_library  
-**Status**: Active Development - Building unified move library system with intelligent phase detection
+**Last Updated**: July 21, 2025  
+**Current Version**: 0.2.02 (Complete Time Management System)  
+**Engine ID**: slowmate_v0.2.02_time_management  
+**Status**: Release Candidate - Tournament-ready time management engine with iterative deepening
 
 ## Version History
-- **0.2.0-dev**: Complete Move Library System (universal move assistance, intelligent phase detection, unified knowledge base)
-=======
-**Current Version**: 0.2.01-dev (Move Ordering & Search Efficiency)  
-**Engine ID**: slowmate_v0.2.01_move_ordering_search_optimization  
-**Status**: Active Development - Phase 1: Core move ordering implementation
-
-## Version History
-- **0.2.01-dev**: Move Ordering & Search Efficiency (transposition tables, killer moves, history heuristics, MVV-LVA)
->>>>>>> feature/v0.2.01_move_ordering
+- **0.2.02**: Complete Time Management System (iterative deepening, aspiration windows, dynamic allocation, emergency mode)
+- **0.2.01**: Move Ordering & Search Efficiency (transposition tables, killer moves, history heuristics, MVV-LVA)
+- **0.2.00**: Complete Move Library System (universal move assistance, intelligent phase detection, unified knowledge base)
 - **0.1.03**: Self-Learning Middlegame Tactics (game analysis utility, confidence-weighted tactics, pattern discovery)
 - **0.1.02**: Knowledge Base Implementation (opening book, knowledge coordinator, endgame framework)
 - **0.1.01**: Tactical Enhancements (SEE-based evaluation, tactical revolution, pawn structure)

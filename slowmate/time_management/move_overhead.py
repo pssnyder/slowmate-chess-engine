@@ -453,7 +453,8 @@ class MoveOverheadManager:
                         self._update_overhead_estimate(overhead_type)
                 
                 except (ValueError, KeyError) as e:
-                    print(f"Error importing measurements for {overhead_type_name}: {e}")
+                    # Error importing measurements - continue with defaults
+                    pass
 
 
 # Export main classes

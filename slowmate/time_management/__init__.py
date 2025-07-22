@@ -224,24 +224,27 @@ def create_advanced_time_manager():
 
 
 if __name__ == "__main__":
-    # Display time management system information
-    info = get_time_management_info()
-    print("SlowMate Time Management System")
-    print("=" * 40)
-    print(f"Version: {info['version']}")
-    print(f"Current Phase: {info['phase']}")
-    print()
+    # Display time management system information only in interactive mode
+    import sys
     
-    print("Components by Phase:")
-    for phase, components in info['components'].items():
-        print(f"  {phase.replace('_', ' ').title()}:")
-        for component in components:
-            print(f"    - {component}")
+    if hasattr(sys, 'ps1') or '--info' in sys.argv:
+        info = get_time_management_info()
+        print("SlowMate Time Management System")
+        print("=" * 40)
+        print(f"Version: {info['version']}")
+        print(f"Current Phase: {info['phase']}")
         print()
-    
-    print("Key Features:")
-    for feature in info['features']:
-        print(f"  - {feature}")
-    
-    print(f"\nTotal exported symbols: {len(__all__)}")
-    print("Time Management System ready for integration!")
+        
+        print("Components by Phase:")
+        for phase, components in info['components'].items():
+            print(f"  {phase.replace('_', ' ').title()}:")
+            for component in components:
+                print(f"    - {component}")
+            print()
+        
+        print("Key Features:")
+        for feature in info['features']:
+            print(f"  - {feature}")
+        
+        print(f"\nTotal exported symbols: {len(__all__)}")
+        print("Time Management System ready for integration!")
