@@ -23,7 +23,7 @@ def build_executable():
     cmd = [
         "python", "-m", "PyInstaller",
         "--onefile",                    # Single executable
-        "--name", "slowmate_v0.2.02",  # Executable name
+        "--name", "slowmate_v0.3.0-BETA",  # Tournament BETA executable name
         "--add-data", "slowmate;slowmate",     # Include slowmate package
         "--hidden-import", "slowmate.engine",
         "--hidden-import", "slowmate.intelligence", 
@@ -70,7 +70,7 @@ def build_executable():
         print("✅ Build completed successfully!")
         
         # Check if executable exists
-        exe_path = Path("dist") / "slowmate_v0.2.02.exe"
+        exe_path = Path("dist") / "slowmate_v0.3.0-BETA.exe"
         if exe_path.exists():
             size_mb = exe_path.stat().st_size / (1024 * 1024)
             print(f"📦 Executable created: {exe_path}")
@@ -100,7 +100,7 @@ def create_tournament_package():
     """Create a tournament package with executable and documentation."""
     print("\n📦 Creating Tournament Package...")
     
-    version = "0.2.02"  # Hardcoded version for consistency
+    version = "0.3.0-BETA"  # Tournament BETA release version
     package_name = f"SlowMate_v{version}_Tournament"
     package_dir = Path(package_name)
     
