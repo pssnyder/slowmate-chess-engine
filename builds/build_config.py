@@ -11,21 +11,22 @@ Centralized configuration for build process to avoid manual edits.
 
 BUILD_CONFIG = {
     # Version Information
-    'version': '0.4.0',
-    'variant': 'RESTORATION_BASE',  # BETA, ALPHA, NAGASAKI, etc.
-    'engine_name': 'SlowMate Chess Engine - Baseline Restoration',
+    'version': '0.4.03',
+    'variant': 'STABLE_BASELINE',  # BETA, ALPHA, NAGASAKI, etc.
+    'engine_name': 'SlowMate Chess Engine - Stable UCI Baseline',
     
     # Build Settings
-    'executable_name': 'slowmate_v0.4.0_RESTORATION_BASE',
-    'tournament_folder': 'SlowMate_v0.4.0_RESTORATION_BASE_Tournament',
+    'executable_name': 'slowmate_v0.4.03_STABLE_BASELINE',
+    'tournament_folder': 'SlowMate_v0.4.03_STABLE_BASELINE_Tournament',
     
     # Features Description
     'features': [
-        'v0.1.0 Baseline Restored',
-        'Tournament-Winning Configuration', 
-        'Systematic Restoration Process',
-        'Verified Stable Foundation',
-        'Ready for Incremental Enhancement'
+        'Professional UCI Interface',
+        'Fixed Depth Search (No Artificial Limits)',
+        'Real-Time Info Output',
+        'Simplified Intelligence (Bug-Free)',
+        'Stable Time Management',
+        'Consistent Depth Progression'
     ]
 }
 

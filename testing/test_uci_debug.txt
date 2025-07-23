@@ -1,0 +1,7 @@
+uci
+debug on
+isready
+ucinewgame
+position startpos
+go wtime 3000 btime 3000
+quit

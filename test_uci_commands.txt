@@ -1,6 +1,0 @@
-uci
-isready
-ucinewgame
-position startpos
-go wtime 5000 btime 5000 winc 100 binc 100
-quit
