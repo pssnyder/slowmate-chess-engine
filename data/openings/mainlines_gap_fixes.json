@@ -1,0 +1,159 @@
+{
+  "_comment": "SlowMate v0.3.01 Enhanced Opening Book - Gap Fixes",
+  "_description": "Fixes identified gaps: Queen's Gambit, French Defense, King's Indian, London System",
+  
+  "_queens_gambit_accepted_continuation": "Queen's Gambit Accepted - deeper line",
+  "rnbqkbnr/p1p1pppp/8/1p6/2pP4/4P3/PP3PPP/RNBQKBNR w KQkq -": {
+    "a4": 50,
+    "Bxc4": 30,
+    "axb5": 20
+  },
+  
+  "rnbqkbnr/p1p1pppp/8/Pp6/3P4/4P3/PP3PPP/RNBQKBNR b KQkq -": {
+    "c6": 50,
+    "Bb7": 30,
+    "a6": 20
+  },
+  
+  "_french_defense_extended": "French Defense - Extended Lines",
+  "rnbqkbnr/ppp2ppp/4p3/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+    "d4": 45,
+    "Nd2": 35,
+    "exd5": 20
+  },
+  
+  "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR b KQkq -": {
+    "c5": 40,
+    "Nc6": 35,
+    "dxe4": 25
+  },
+  
+  "rnbqkbnr/pp3ppp/4p3/2pp4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "Nd2": 45,
+    "c3": 40,
+    "exd5": 15
+  },
+  
+  "rnbqkbnr/pp3ppp/4p3/2pp4/3PP3/2P5/PP3PPP/RNBQKBNR b KQkq -": {
+    "Nc6": 50,
+    "cxd4": 30,
+    "Nf6": 20
+  },
+  
+  "_french_advance_variation": "French Advance: 1.e4 e6 2.d4 d5 3.e5",
+  "rnbqkbnr/ppp2ppp/4p3/3pP3/3P4/8/PPP2PPP/RNBQKBNR b KQkq -": {
+    "c5": 50,
+    "Ne7": 30,
+    "f6": 20
+  },
+  
+  "rnbqkbnr/pp3ppp/4p3/2ppP3/3P4/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "c3": 45,
+    "Nf3": 40,
+    "dxc5": 15
+  },
+  
+  "_london_system_extended": "London System - Extended Coverage",
+  "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -": {
+    "Nf3": 45,
+    "Bf4": 35,
+    "c4": 20
+  },
+  
+  "rnbqkb1r/pppppppp/5n2/8/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq -": {
+    "e6": 40,
+    "d5": 35,
+    "g6": 25
+  },
+  
+  "rnbqkb1r/pppp1ppp/4pn2/8/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq -": {
+    "Bf4": 50,
+    "c4": 30,
+    "e3": 20
+  },
+  
+  "rnbqkb1r/pppp1ppp/4pn2/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R b KQkq -": {
+    "Be7": 50,
+    "c5": 30,
+    "Bd6": 20
+  },
+  
+  "rnbqk2r/ppppbppp/4pn2/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R w KQkq -": {
+    "e3": 45,
+    "c3": 35,
+    "Nbd2": 20
+  },
+  
+  "rnbqk2r/ppppbppp/4pn2/8/3P1B2/4PN2/PPP2PPP/RN1QKB1R b KQkq -": {
+    "0-0": 50,
+    "c6": 30,
+    "Nbd7": 20
+  },
+  
+  "_kings_indian_extended": "King's Indian Defense - Extended Lines",
+  "rnbqk2r/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR b KQkq -": {
+    "d6": 50,
+    "0-0": 35,
+    "c5": 15
+  },
+  
+  "rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR w KQkq -": {
+    "Nf3": 50,
+    "f3": 30,
+    "Be2": 20
+  },
+  
+  "rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N2N2/PP3PPP/R1BQKB1R b KQkq -": {
+    "0-0": 60,
+    "e5": 25,
+    "Nc6": 15
+  },
+  
+  "rnbq1rk1/ppp1ppbp/3p1np1/8/2PPP3/2N2N2/PP3PPP/R1BQKB1R w KQ -": {
+    "Be2": 45,
+    "h3": 35,
+    "g3": 20
+  },
+  
+  "rnbq1rk1/ppp1ppbp/3p1np1/8/2PPP3/2N2N2/PP2BPPP/R1BQK2R b KQ -": {
+    "e5": 50,
+    "c5": 30,
+    "Nc6": 20
+  },
+  
+  "_sicilian_extended": "Sicilian Defense - Extended Coverage",
+  "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+    "Nf3": 60,
+    "Nc3": 25,
+    "f4": 15
+  },
+  
+  "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -": {
+    "d6": 40,
+    "Nc6": 35,
+    "g6": 25
+  },
+  
+  "rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -": {
+    "d4": 60,
+    "Bb5+": 25,
+    "c3": 15
+  },
+  
+  "rnbqkbnr/pp2pppp/3p4/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq -": {
+    "cxd4": 70,
+    "Nf6": 20,
+    "e6": 10
+  },
+  
+  "rnbqkbnr/pp2pppp/3p4/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq -": {
+    "Nxd4": 80,
+    "Qxd4": 20
+  },
+  
+  "rnbqkbnr/pp2pppp/3p4/8/3NP3/8/PPP2PPP/RNBQKB1R b KQkq -": {
+    "Nf6": 50,
+    "g6": 30,
+    "a6": 20
+  }
+}

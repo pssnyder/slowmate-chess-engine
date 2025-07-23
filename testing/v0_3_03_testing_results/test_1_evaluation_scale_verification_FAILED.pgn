@@ -1,0 +1,29 @@
+[Event "Computer chess game"]
+[Site "MAIN-DESKTOP"]
+[Date "2025.07.22"]
+[Round "?"]
+[White "SlowMate_v0.3.02_Enhanced_Endgame"]
+[Black "SlowMate_v0.3.02_Enhanced_Endgame"]
+[Result "*"]
+[BlackElo "2000"]
+[ECO "B02"]
+[Opening "Alekhine"]
+[Time "21:31:51"]
+[Variation "Scandinavian Variation"]
+[WhiteElo "2000"]
+[TimeControl "120+1"]
+[Termination "normal"]
+[PlyCount "22"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. e4 Nf6 {(Ng8-f6) +218.00/8 0} 2. Nc3 {(Nb1-c3) -23.00/8 0} Nxe4
+{(Nf6xe4) +213.00/8 0} 3. Nxe4 {(Nc3xe4) +292.00/8 0} d5 {(d7-d5) -99.00/8
+0} 4. Ng5 {(Ne4-g5) +M500/8 0} Bg4 {(Bc8-g4) -124.00/8 0} 5. Nxf7 {(Ng5xf7)
++M500/8 0} Bxd1 {(Bg4xd1) +M500/8 0} 6. Nxd8 {(Nf7xd8) +M500/8 0} Kxd8
+{(Ke8xd8) +23.00/8 0} 7. Kxd1 {(Ke1xd1) +M500/8 0} Kc8 {(Kd8-c8) -M500/8 0}
+8. Nf3 {(Ng1-f3) +M500/8 0} Na6 {(Nb8-a6) -M500/8 0} 9. Bxa6 {(Bf1xa6)
++M500/8 0} bxa6 {(b7xa6) -213.00/8 0} 10. d4 {(d2-d4) +M500/8 0} Rb8
+{(Ra8-b8) -M500/8 0} 11. Bf4 {(Bc1-f4) +M500/8 0} Rb4 {(Rb8-b4) -245.00/8 0
+Black resigns} *
+

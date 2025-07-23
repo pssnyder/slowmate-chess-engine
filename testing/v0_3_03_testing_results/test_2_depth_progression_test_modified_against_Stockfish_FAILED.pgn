@@ -1,0 +1,46 @@
+[Event "Computer chess game"]
+[Site "MAIN-DESKTOP"]
+[Date "2025.07.22"]
+[Round "?"]
+[White "Stockfish"]
+[Black "SlowMate_v0.3.02_Enhanced_Endgame"]
+[Result "*"]
+[BlackElo "2000"]
+[ECO "B02"]
+[Opening "Alekhine"]
+[Time "21:35:03"]
+[Variation "Mokele Mbembe (Bücker) Variation"]
+[WhiteElo "1000"]
+[TimeControl "120+1"]
+[Termination "normal"]
+[PlyCount "16"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. e4 {(e2-e4 e7-e6 d2-d4 d7-d5 Nb1-c3 Ng8-f6 e4-e5 Nf6-d7 f2-f4 c7-c5
+Ng1-f3 Nb8-c6 Bc1-e3 Bf8-e7 Bf1-e2 O-O O-O c5xd4 Nf3xd4 Nc6xd4 Be3xd4 f7-f6
+e5xf6 Be7xf6 Kg1-h1) +0.36/29 3} Nf6 {(Ng8-f6) +218.00/8 0} 2. e5 {(e4-e5
+Nf6-d5 c2-c4 Nd5-b6 Nb1-c3 d7-d6 e5xd6 e7xd6 d2-d4 Bf8-e7 Bf1-d3 Nb8-c6
+Ng1-e2 O-O h2-h3 Rf8-e8 O-O Be7-f6 Bc1-e3 Nc6-b4 Bd3-b1 d6-d5 a2-a3 Nb4-c6
+Nc3xd5 Nb6xd5 c4xd5 Nc6-e7 Ne2-f4 Ne7xd5) +0.59/25 1} Ne4 {(Nf6-e4)
++273.00/8 0} 3. d4 {(d2-d4 e7-e6 Ng1-h3 h7-h6 Bf1-d3 d7-d5 O-O c7-c5 c2-c3
+Nb8-c6 Bc1-e3 b7-b6 f2-f3 Ne4-g5 Nh3-f2 Bf8-e7 f3-f4 Ng5-h7 Nb1-d2 a7-a5
+Qd1-e2 c5xd4 Be3xd4 Nh7-f8 Nd2-f3 Nf8-g6 Bd4-e3 Be7-c5 Nf3-d4 Bc5xd4 c3xd4
+Nc6-b4 Bd3-b5+ Bc8-d7) +1.47/32 9} Nxf2 {(Ne4xf2) +M500/8 0} 4. Kxf2
+{(Ke1xf2 d7-d6 Ng1-f3 d6xe5 Nf3xe5 Bc8-f5 Nb1-c3 e7-e6 Bc1-e3 Bf8-d6 Bf1-d3
+Bd6xe5 d4xe5 Bf5xd3 Qd1xd3 Qd8xd3 c2xd3 Nb8-c6 d3-d4 f7-f6 Kf2-e2 O-O-O
+Ra1-d1 f6xe5 d4xe5) +3.87/24 1} Nc6 {(Nb8-c6) -53.00/8 0} 5. Nf3 {(Ng1-f3
+d7-d6 Bf1-b5 a7-a6 Bb5xc6+ b7xc6 Rh1-e1 h7-h6 Nb1-c3 g7-g5 Kf2-g1 Bf8-g7
+Qd1-d3 a6-a5 b2-b3 g5-g4 Nf3-h4 O-O Bc1-f4 e7-e6 Qd3-g3 f7-f6 e5xd6 f6-f5
+Ra1-d1 c7xd6 Nh4-g6 Qd8-f6 Ng6xf8 Qf6xf8) +4.05/27 5} Nxd4 {(Nc6xd4)
+-73.00/8 0} 6. Qxd4 {(Qd1xd4 d7-d5 e5xd6/ep a7-a6 Nb1-c3 c7xd6 Nc3-d5 e7-e5
+Qd4-b6 Bc8-e6 Qb6xd8+ Ke8xd8 c2-c4 Be6xd5 c4xd5 Ra8-c8 Bc1-e3 Rc8-c2+
+Bf1-e2 e5-e4) +5.36/25 1} c5 {(c7-c5) -M500/8 0} 7. Qf4 {(Qd4-f4 e7-e6
+Nb1-c3 Qd8-b6 Bf1-c4 d7-d5 e5xd6/ep Bf8xd6 Qf4-d2 O-O Rh1-d1 Bd6-c7 Qd2-e2
+Bc7-b8 Kf2-g1 a7-a6 a2-a4 Qb6-c7 a4-a5 b7-b6 a5xb6 Qc7xb6 Nf3-e5 Bb8xe5
+Qe2xe5 Bc8-b7) +5.59/23 1} Qc7 {(Qd8-c7) -M500/8 0} 8. Nc3 {(Nb1-c3 e7-e6
+Nc3-b5 Qc7-c6 Bf1-d3 b7-b6 Qf4-e4 Qc6xe4 Bd3xe4 Ra8-b8 Bc1-g5 Bf8-e7 Rh1-e1
+Be7xg5 Nf3xg5 f7-f6 e5xf6 g7xf6 Ng5-h3 Ke8-e7 Ra1-d1 f6-f5 Be4-f3 Rh8-g8
+b2-b3 Bc8-b7 Bf3xb7 Rb8xb7 Nh3-f4 Rg8-g4 g2-g3 Ke7-f8 h2-h3 Rg4-g8 Nf4xe6+
+d7xe6) +5.95/27 3} c4 {(c5-c4) -78.00/8 0 Black resigns} *
+

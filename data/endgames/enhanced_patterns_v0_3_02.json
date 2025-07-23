@@ -1,0 +1,62 @@
+{
+  "king_mobility_tactics": {
+    "description": "Tactics for reducing opponent king mobility (closing the box)",
+    "patterns": [
+      {
+        "name": "king_mobility_reduction",
+        "priority": 90,
+        "description": "Reduce opponent king mobility by 2+ squares",
+        "evaluation_bonus": 50,
+        "conditions": [
+          "is_endgame",
+          "can_reduce_king_mobility"
+        ]
+      }
+    ]
+  },
+  "rook_endgame_patterns": {
+    "description": "Enhanced rook cutting and positioning patterns",
+    "patterns": [
+      {
+        "name": "rook_cutting_off",
+        "priority": 85,
+        "description": "Use rook to cut off opponent king",
+        "evaluation_bonus": 40,
+        "conditions": [
+          "is_endgame",
+          "rook_can_cut_off_king"
+        ]
+      }
+    ]
+  },
+  "active_king_patterns": {
+    "description": "Patterns for active king play in endgames",
+    "patterns": [
+      {
+        "name": "active_king_centralization",
+        "priority": 75,
+        "description": "Centralize king actively in endgame",
+        "evaluation_bonus": 30,
+        "conditions": [
+          "is_endgame",
+          "king_can_centralize"
+        ]
+      }
+    ]
+  },
+  "pawn_promotion_intelligence": {
+    "description": "Enhanced pawn promotion evaluation and tactics",
+    "patterns": [
+      {
+        "name": "pawn_promotion_advance",
+        "priority": 95,
+        "description": "Advance pawns toward promotion",
+        "evaluation_bonus": 60,
+        "conditions": [
+          "is_endgame",
+          "pawn_near_promotion"
+        ]
+      }
+    ]
+  }
+}

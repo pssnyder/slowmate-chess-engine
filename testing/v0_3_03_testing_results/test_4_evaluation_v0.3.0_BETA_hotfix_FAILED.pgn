@@ -1,0 +1,38 @@
+[Event "Computer chess game"]
+[Site "MAIN-DESKTOP"]
+[Date "2025.07.22"]
+[Round "?"]
+[White "SlowMate_v0.3.0_BETA"]
+[Black "Stockfish"]
+[Result "0-1"]
+[BlackElo "1000"]
+[ECO "A06"]
+[Opening "Reti Opening"]
+[Time "22:53:13"]
+[Variation "Tennison (Zukertort-Lemberg) Gambit Accepted"]
+[WhiteElo "300"]
+[TimeControl "120+1"]
+[Termination "normal"]
+[PlyCount "14"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. Nf3 {(Ng1-f3) -25.00/8 0} d5 {(d7-d5 d2-d4 Ng8-f6 c2-c4 c7-c6 c4xd5
+c6xd5 Nb1-c3 Nb8-c6 Bc1-f4 a7-a6 Nf3-e5 e7-e6 e2-e3 Nc6xe5 Bf4xe5 Bc8-d7
+Bf1-d3 Bd7-c6 Qd1-f3 Nf6-d7 Be5-f4 Nd7-f6 O-O Bf8-d6 Ra1-c1 Bd6xf4 Qf3xf4
+O-O Qf4-f3 Ra8-c8 Qf3-d1) -0.30/35 11} 2. e4 {(e2-e4) +45.00/8 0} dxe4
+{(d5xe4 Nf3-g5 Bc8-f5 Nb1-c3 Ng8-f6 d2-d3 Bf5-g4 Qd1-d2 e4xd3 Bf1xd3 Bg4-h5
+Qd2-e3 e7-e6 Ng5-e4 Nb8-d7 O-O c7-c6 Ne4xf6+ Nd7xf6 Qe3-g3 Bh5-g6) +0.86/23
+1} 3. Bd3 {(Bf1-d3) -11.00/8 0} exd3 {(e4xd3 O-O Ng8-f6 Rf1-e1 Bc8-f5 c2-c4
+e7-e6 b2-b4 Nb8-d7 Nb1-c3 Bf8xb4 Nc3-d5 Bb4-d6 Nd5xf6+ Nd7xf6 Ra1-b1 Ra8-b8
+Qd1-a4+ Nf6-d7 Bc1-a3 O-O Ba3xd6 c7xd6 Qa4-a3 b7-b6) +5.29/24 1} 4. c4
+{(c2-c4) -M500/8 0} e5 {(e7-e5 O-O Nb8-c6 Rf1-e1 f7-f6 Nb1-c3 Ng8-h6 h2-h3
+Nh6-f5 Nc3-d5 a7-a5 Qd1-a4 b7-b5 Qa4-b3 Bf8-e7 c4-c5 Bc8-b7 a2-a3) +5.29/27
+3} 5. Nxe5 {(Nf3xe5) -M415/8 0} Bd6 {(Bf8-d6 Ne5xd3 Qd8-e7+ Qd1-e2 Bc8-f5
+Qe2xe7+ Ng8xe7 c4-c5 Bf5xd3 c5xd6 c7xd6 Nb1-c3 Nb8-c6 b2-b3 Ke8-d7 Bc1-b2
+Nc6-b4 a2-a3 Nb4-c6 O-O-O Ra8-c8 Rh1-e1 f7-f6) +5.72/24 1} 6. Nxf7
+{(Ne5xf7) +M366/8 0} Qe7+ {(Qd8-e7+ Ke1-f1 Qe7xf7 b2-b3 Ng8-e7 Nb1-c3 O-O
+f2-f3 Nb8-c6 Bc1-b2 Bc8-d7 Nc3-e4 Ra8-e8 Ne4xd6 c7xd6 h2-h4 Ne7-f5 Rh1-h3
+Nf5-e3+ d2xe3 Bd7xh3 g2xh3 Qf7xf3+ Qd1xf3 Rf8xf3+ Kf1-g1) +7.13/24 2} 7.
+Qe2 {(Qd1-e2) +170.00/8 0} Qxe2# {(Qe7xe2+) +M1/245 0} 0-1
+

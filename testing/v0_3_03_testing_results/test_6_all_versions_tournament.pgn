@@ -1,0 +1,25 @@
+[Event "Slowmate_tournament_all_20250722"]
+[Site "MAIN-DESKTOP"]
+[Date "2025.07.22"]
+[Round "1"]
+[White "SlowMate_v0.1.03_Middlegame"]
+[Black "SlowMate_v0.0.00_DELTA"]
+[Result "*"]
+[BlackElo "100"]
+[ECO "A04"]
+[Opening "Reti Opening"]
+[Time "23:23:22"]
+[Variation "1...e6"]
+[WhiteElo "100"]
+[TimeControl "120+1"]
+[Termination "unterminated"]
+[PlyCount "20"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. Nf3 {-0.25/1 0} e6 {+1.13/1 0} 2. Ne5 {+0.43/1 0} Qg5 {+9.31/1 0} 3.
+Nxf7 {+6.25/1 0} Qf4 {+9.07/1 0} 4. Nxh8 {+4.91/1 0} Qd4 {+5.59/1 0} 5. c3
+{+7.41/1 0} Qe4 {+4.98/1 0} 6. f3 {+10.43/1 0} Qxe2+ {+4.98/1 0} 7. Bxe2
+{+17.90/1 0} Nf6 {-14.00/1 0} 8. Qa4 {+16.65/1 0} b5 {-12.30/1 0} 9. Qa3
+{+17.84/1 0} Bxa3 {+4.70/1 0} 10. bxa3 {+10.54/1 0} b4 {-8.08/1 0} *
+

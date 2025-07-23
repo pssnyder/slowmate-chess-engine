@@ -1,0 +1,71 @@
+[Event "Computer chess game"]
+[Site "MAIN-DESKTOP"]
+[Date "2025.07.22"]
+[Round "?"]
+[White "SlowMate_v0.3.02_Enhanced_Endgame"]
+[Black "SlowMate_v0.3.0_BETA"]
+[Result "*"]
+[BlackElo "300"]
+[ECO "A00"]
+[Opening "Dunst (Sleipner-Heinrichsen-Van Geet) Opening"]
+[Time "20:56:13"]
+[WhiteElo "2000"]
+[TimeControl "120+1"]
+[Termination "normal"]
+[PlyCount "61"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. Nc3 {(Nb1-c3) -25.00/8 0} Nc6 {(Nb8-c6) +90.00/8 0} 2. Nd5 {(Nc3-d5)
+-15.00/8 0} e6 {(e7-e6) +253.00/8 0} 3. Nxc7+ {(Nd5xc7+) +177.00/8 0} Qxc7
+{(Qd8xc7) +M500/8 0} 4. Nf3 {(Ng1-f3) -257.00/8 0} Nb4 {(Nc6-b4) +M500/8 0}
+5. a3 {(a2-a3) +59.00/8 0} Qc4 {(Qc7-c4) +M500/8 0} 6. e4 {(e2-e4) +M500/8
+0} Qxf1+ {(Qc4xf1+) +M500/8 0} 7. Rxf1 {(Rh1xf1) +M500/8 0} Nxc2+
+{(Nb4xc2+) +43.00/8 0} 8. Qxc2 {(Qd1xc2) +M500/8 0} Bxa3 {(Bf8xa3)
+-192.00/8 0} 9. Rxa3 {(Ra1xa3) +M500/8 0} Rb8 {(Ra8-b8) -M500/8 0} 10.
+Qxc8+ {(Qc2xc8+) +M500/8 0} Rxc8 {(Rb8xc8) +76.00/8 0} 11. Rc3 {(Ra3-c3)
++M500/8 0} Rxc3 {(Rc8xc3) +M500/8 0} 12. dxc3 {(d2xc3) +285.00/8 0} f5
+{(f7-f5) -268.00/8 0} 13. Ng5 {(Nf3-g5) +M500/8 0} h6 {(h7-h6) -132.00/8 0}
+14. Nxe6 {(Ng5xe6) +M500/8 0} dxe6 {(d7xe6) -6.00/8 0} 15. Be3 {(Bc1-e3)
++191.00/8 0} fxe4 {(f5xe4) -18.00/8 0} 16. Bd4 {(Be3-d4) +M500/8 0} e5
+{(e6-e5) -79.00/8 0} 17. Bxe5 {(Bd4xe5) +M500/8 0} Nf6 {(Ng8-f6) -93.00/8
+0} 18. Bxf6 {(Be5xf6) +M500/8 0} gxf6 {(g7xf6) +37.00/8 0} 19. f3 {(f2-f3)
++230.00/8 0} exf3 {(e4xf3) -115.00/8 0} 20. g4 {(g2-g4) +245.00/8 0} h5
+{(h6-h5) -200.00/8 0} 21. gxh5 {(g4xh5) +300.00/8 0} Rxh5 {(Rh8xh5)
+-90.00/8 0} 22. h4 {(h2-h4) +155.00/8 0} Rxh4 {(Rh5xh4) -35.00/8 0} 23. b4
+{(b2-b4) +60.00/8 0} Rc4 {(Rh4-c4) +25.00/8 0} 24. b5 {(b4-b5) +85.00/8 0}
+Rxc3 {(Rc4xc3) +75.00/8 0} 25. Kd2 {(Ke1-d2) +115.00/8 0} Rb3 {(Rc3-b3)
++125.00/8 0} 26. Kc2 {(Kd2-c2) +65.00/8 0} Rxb5 {(Rb3xb5) +300.00/8 0} 27.
+Rb1 {(Rf1-b1) -100.00/8 0} Rxb1 {(Rb5xb1) +M500/8 0} 28. Kxb1 {(Kc2xb1)
+-280.00/8 0} f5 {(f6-f5) +300.00/8 0} 29. Kc1 {(Kb1-c1) -280.00/8 0} Kf8
+{(Ke8-f8) +285.00/8 0} 30. Kd2 {(Kc1-d2) -290.00/8 0} Kg8 {(Kf8-g8)
++315.00/8 0} 31. Ke3 {(Kd2-e3) -255.00/8 0 White resigns} *
+
+[Event "Computer chess game"]
+[Site "MAIN-DESKTOP"]
+[Date "2025.07.22"]
+[Round "?"]
+[White "SlowMate_v0.3.02_Enhanced_Endgame"]
+[Black "SlowMate_v0.3.02_Enhanced_Endgame"]
+[Result "*"]
+[BlackElo "2000"]
+[ECO "A40"]
+[Opening "Englund (Charlick) Gambit"]
+[Time "20:57:39"]
+[Variation "2.dxe5 Nc6 3.Nf3"]
+[WhiteElo "2000"]
+[TimeControl "120+1"]
+[Termination "normal"]
+[PlyCount "20"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. Nf3 {(Ng1-f3) -25.00/8 0} Nc6 {(Nb8-c6) +90.00/8 0} 2. d4 {(d2-d4)
+-23.00/8 0} e5 {(e7-e5) +292.00/8 0} 3. dxe5 {(d4xe5) +M500/8 0} Bd6
+{(Bf8-d6) +194.00/8 0} 4. exd6 {(e5xd6) +M500/8 0} g5 {(g7-g5) -84.00/8 0}
+5. dxc7 {(d6xc7) +M500/8 0} Nd4 {(Nc6-d4) +288.00/8 0} 6. cxd8=Q+
+{(c7xd8Q+) +M500/8 0} Kxd8 {(Ke8xd8) -M500/8 0} 7. Nxd4 {(Nf3xd4) +M500/8
+0} g4 {(g5-g4) -M500/8 0} 8. Nc3 {(Nb1-c3) +M500/8 0} g3 {(g4-g3) -M500/8
+0} 9. hxg3 {(h2xg3) +M500/8 0} Nh6 {(Ng8-h6) -M500/8 0} 10. Rxh6 {(Rh1xh6)
++M500/8 0} Rg8 {(Rh8-g8) -M500/8 0 Black resigns} *
+

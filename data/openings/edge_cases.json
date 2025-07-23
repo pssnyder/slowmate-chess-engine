@@ -1,0 +1,127 @@
+{
+  "_comment": "SlowMate v0.3.01 Enhanced Opening Book - Edge Cases (1-2 alternatives for challenging positions)",
+  
+  "_early_queen_attacks": "Defending against early queen attacks",
+  "rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPPQPPP/RNB1KBNR b KQkq -": {
+    "Nf6": 60,
+    "Nc6": 40
+  },
+  
+  "rnbqkbnr/ppp2ppp/3p4/8/2B1n3/8/PPPP1PPP/RNBQK1NR w KQkq -": {
+    "Nf3": 70,
+    "f3": 30
+  },
+  
+  "_scholars_mate_defense": "Defending against Scholar's Mate attempts",
+  "rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq -": {
+    "Nf3": 60,
+    "d3": 40
+  },
+  
+  "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -": {
+    "0-0": 50,
+    "d3": 35,
+    "Re1": 15
+  },
+  
+  "_wayward_queen_attack": "Defending against Wayward Queen Attack",
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPPQPPP/RNB1KBNR b KQkq -": {
+    "Nc6": 50,
+    "Nf6": 50
+  },
+  
+  "_kings_gambit_declined": "King's Gambit declined variations",
+  "rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq -": {
+    "Bc5": 50,
+    "d6": 30,
+    "Nc6": 20
+  },
+  
+  "rnbqk1nr/pppp1ppp/8/2b1p3/4PP2/8/PPPP2PP/RNBQKBNR w KQkq -": {
+    "Nf3": 60,
+    "f5": 40
+  },
+  
+  "_irregular_openings": "Defending against irregular openings",
+  "rnbqkbnr/pppppppp/8/8/8/7P/PPPPPPP1/RNBQKBNR b KQkq -": {
+    "e5": 40,
+    "d5": 35,
+    "Nf6": 25
+  },
+  
+  "rnbqkbnr/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQKBNR b KQkq -": {
+    "e5": 40,
+    "d5": 35,
+    "c5": 25
+  },
+  
+  "_center_game": "Center Game alternatives",
+  "rnbqkbnr/pppp1ppp/8/4p3/3PP3/8/PPP2PPP/RNBQKBNR b KQkq -": {
+    "exd4": 70,
+    "Nf6": 30
+  },
+  
+  "rnbqkbnr/pppp1ppp/8/8/3pP3/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "Qxd4": 80,
+    "Nf3": 20
+  },
+  
+  "_ponziani_opening": "Ponziani Opening responses", 
+  "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -": {
+    "c3": 60,
+    "Bb5": 40
+  },
+  
+  "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/2P2N2/PP1P1PPP/RNBQKB1R b KQkq -": {
+    "d5": 50,
+    "f5": 30,
+    "Nf6": 20
+  },
+  
+  "_latvian_gambit": "Latvian Gambit alternatives",
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -": {
+    "f5": 60,
+    "Nc6": 40
+  },
+  
+  "rnbqkbnr/pppp2pp/8/4pp2/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -": {
+    "Nxe5": 70,
+    "d4": 30
+  },
+  
+  "_budapest_gambit": "Budapest Gambit alternatives",
+  "rnbqkb1r/pppp1ppp/5n2/4p3/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -": {
+    "dxe5": 60,
+    "e3": 40
+  },
+  
+  "rnbqkb1r/pppp1ppp/8/4P3/2P2n2/8/PP2PPPP/RNBQKBNR b KQkq -": {
+    "Ne6": 50,
+    "Ng6": 50
+  },
+  
+  "_polish_opening": "Polish Opening responses",
+  "rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq -": {
+    "d5": 50,
+    "e5": 30,
+    "Nf6": 20
+  },
+  
+  "_bird_opening": "Bird's Opening responses", 
+  "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq -": {
+    "d5": 50,
+    "e5": 30,
+    "Nf6": 20
+  },
+  
+  "_trappy_positions": "Common tactical traps to avoid",
+  "rnbqk2r/pppp1ppp/4pn2/2b5/2B1P3/3P1N2/PPP2PPP/RNBQK2R b KQkq -": {
+    "Ng4": 60,
+    "0-0": 40
+  },
+  
+  "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R b KQkq -": {
+    "Be7": 70,
+    "Na5": 30
+  }
+}

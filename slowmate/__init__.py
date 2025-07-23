@@ -1,8 +1,8 @@
 """
-SlowMate Chess Engine
+SlowMate Chess Engine Package (v0.1.0 Baseline)
 
-A learning-focused, incremental chess engine built for clarity and understanding.
+Tournament-winning chess engine implementation.
 """
 
-__version__ = "0.2.01"
-__author__ = "Pat Snyder"
+__version__ = "0.1.0"
+__author__ = "SlowMate Development Team"

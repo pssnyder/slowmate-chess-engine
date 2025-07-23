@@ -1,0 +1,287 @@
+{
+  "_comment": "SlowMate v0.3.01 Enhanced Opening Book - Mainlines (8-10 moves deep)",
+  
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": {
+    "e4": 40,
+    "d4": 35, 
+    "Nf3": 15,
+    "c4": 10
+  },
+  
+  "_e4_openings": "===== E4 OPENINGS =====",
+  
+  "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -": {
+    "e5": 30,
+    "c5": 25,
+    "e6": 20,
+    "c6": 15,
+    "d6": 10
+  },
+  
+  "_italian_game": "Italian Game: 1.e4 e5 2.Nf3 Nc6 3.Bc4",
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+    "Nf3": 50,
+    "Nc3": 25,
+    "f4": 15,
+    "Bc4": 10
+  },
+  
+  "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -": {
+    "Bc4": 40,
+    "Bb5": 35,
+    "d4": 25
+  },
+  
+  "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq -": {
+    "Bc5": 40,
+    "Be7": 30,
+    "Nf6": 20,
+    "f5": 10
+  },
+  
+  "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -": {
+    "c3": 40,
+    "d3": 35,
+    "0-0": 25
+  },
+  
+  "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R b KQkq -": {
+    "f5": 40,
+    "Nf6": 35,
+    "d6": 25
+  },
+  
+  "r1bqk1nr/pppp1ppp/2n5/2b1pp2/2B1P3/2P2N2/PP1P1PPP/RNBQK2R w KQkq -": {
+    "d4": 50,
+    "d3": 30,
+    "0-0": 20
+  },
+  
+  "r1bqk1nr/pppp1ppp/2n5/2b1pp2/2BPP3/2P2N2/PP3PPP/RNBQK2R b KQkq -": {
+    "exd4": 50,
+    "fxe4": 30,
+    "Nf6": 20
+  },
+  
+  "_spanish_opening": "Spanish Opening: 1.e4 e5 2.Nf3 Nc6 3.Bb5",
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq -": {
+    "a6": 50,
+    "Nf6": 30,
+    "f5": 20
+  },
+  
+  "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq -": {
+    "Ba4": 60,
+    "Bxc6": 40
+  },
+  
+  "r1bqkbnr/1ppp1ppp/p1n5/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R b KQkq -": {
+    "Nf6": 50,
+    "Be7": 30,
+    "b5": 20
+  },
+  
+  "r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R w KQkq -": {
+    "0-0": 50,
+    "d3": 30,
+    "Re1": 20
+  },
+  
+  "r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQ1RK1 b kq -": {
+    "Be7": 40,
+    "Bc5": 35,
+    "b5": 25
+  },
+  
+  "_caro_kann": "Caro-Kann Defense: 1.e4 c6",
+  "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": "d4",
+  
+  "rnbqkbnr/pp1ppppp/2p5/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq -": {
+    "d5": 60,
+    "dxe4": 40
+  },
+  
+  "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "Nd2": 40,
+    "exd5": 35,
+    "e5": 25
+  },
+  
+  "rnbqkbnr/pp2pppp/2p5/3pP3/3P4/8/PPP2PPP/RNBQKBNR b KQkq -": {
+    "Bf5": 50,
+    "c5": 30,
+    "e6": 20
+  },
+  
+  "rn1qkbnr/pp2pppp/2p5/3pPb2/3P4/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "Nf3": 40,
+    "Nd2": 35,
+    "Be2": 25
+  },
+  
+  "_french_defense": "French Defense: 1.e4 e6",
+  "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": "d4",
+  
+  "rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq -": {
+    "d5": 70,
+    "c5": 20,
+    "Nc6": 10
+  },
+  
+  "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "Nd2": 40,
+    "exd5": 35,
+    "e5": 25
+  },
+  
+  "rnbqkbnr/ppp2ppp/4p3/3pP3/3P4/8/PPP2PPP/RNBQKBNR b KQkq -": {
+    "c5": 50,
+    "Ne7": 30,
+    "f6": 20
+  },
+  
+  "rnbqkbnr/pp3ppp/4p3/2ppP3/3P4/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "c3": 50,
+    "Nf3": 30,
+    "dxc5": 20
+  },
+  
+  "_d4_openings": "===== D4 OPENINGS =====",
+  
+  "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq -": {
+    "d5": 35,
+    "Nf6": 30,
+    "e6": 20,
+    "c6": 10,
+    "f5": 5
+  },
+  
+  "_queens_gambit": "Queen's Gambit: 1.d4 d5 2.c4",
+  "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -": {
+    "c4": 50,
+    "Nf3": 30,
+    "e3": 20
+  },
+  
+  "rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq -": {
+    "dxc4": 40,
+    "e6": 35,
+    "c6": 25
+  },
+  
+  "rnbqkbnr/ppp1pppp/8/8/2pP4/8/PP2PPPP/RNBQKBNR w KQkq -": {
+    "e3": 40,
+    "Nf3": 35,
+    "e4": 25
+  },
+  
+  "rnbqkbnr/ppp1pppp/8/8/2pP4/4P3/PP3PPP/RNBQKBNR b KQkq -": {
+    "b5": 50,
+    "Nf6": 30,
+    "e6": 20
+  },
+  
+  "rnbqkbnr/p1p1pppp/8/1p6/2pP4/4P3/PP3PPP/RNBQKBNR w KQkq -": {
+    "a4": 50,
+    "Bxc4": 30,
+    "axb5": 20
+  },
+  
+  "_queens_gambit_declined": "Queen's Gambit Declined: 1.d4 d5 2.c4 e6",
+  "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -": {
+    "Nc3": 45,
+    "Nf3": 40,
+    "cxd5": 15
+  },
+  
+  "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR b KQkq -": {
+    "Nf6": 50,
+    "c6": 30,
+    "Be7": 20
+  },
+  
+  "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq -": {
+    "Bg5": 45,
+    "Nf3": 40,
+    "cxd5": 15
+  },
+  
+  "_london_system": "London System: 1.d4 Nf6 2.Nf3 e6 3.Bf4",
+  "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -": {
+    "Nf3": 40,
+    "c4": 35,
+    "Bg5": 25
+  },
+  
+  "rnbqkb1r/pppp1ppp/4pn2/8/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq -": {
+    "e6": 40,
+    "g6": 30,
+    "d6": 20,
+    "c5": 10
+  },
+  
+  "rnbqkb1r/pppp1ppp/4pn2/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R b KQkq -": {
+    "Be7": 40,
+    "c5": 35,
+    "Bb4+": 25
+  },
+  
+  "rnbqk2r/ppppbppp/4pn2/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R w KQkq -": {
+    "e3": 45,
+    "Nbd2": 35,
+    "h3": 20
+  },
+  
+  "rnbqk2r/ppppbppp/4pn2/8/3P1B2/4PN2/PPP2PPP/RN1QKB1R b KQkq -": {
+    "0-0": 50,
+    "h6": 30,
+    "c5": 20
+  },
+  
+  "_kings_indian": "King's Indian Defense: 1.d4 Nf6 2.c4 g6",
+  "rnbqkb1r/pppppp1p/5np1/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -": {
+    "Nc3": 50,
+    "Nf3": 35,
+    "g3": 15
+  },
+  
+  "rnbqkb1r/pppppp1p/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR b KQkq -": {
+    "Bg7": 60,
+    "d6": 40
+  },
+  
+  "rnbqk2r/ppppppbp/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq -": {
+    "e4": 50,
+    "Nf3": 35,
+    "f3": 15
+  },
+  
+  "rnbqk2r/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR b KQkq -": {
+    "d6": 50,
+    "0-0": 35,
+    "c5": 15
+  },
+  
+  "_nf3_openings": "===== NF3 OPENINGS =====",
+  
+  "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -": {
+    "d5": 30,
+    "Nf6": 25,
+    "c5": 20,
+    "g6": 15,
+    "e6": 10
+  },
+  
+  "_reti_opening": "Reti Opening: 1.Nf3 d5 2.c4",
+  "rnbqkbnr/ppp1pppp/8/3p4/8/5N2/PPPPPPPP/RNBQKB1R w KQkq -": {
+    "c4": 45,
+    "d4": 35,
+    "g3": 20
+  },
+  
+  "rnbqkbnr/ppp1pppp/8/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq -": {
+    "dxc4": 40,
+    "e6": 35,
+    "c6": 25
+  }
+}

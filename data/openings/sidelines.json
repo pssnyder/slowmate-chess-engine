@@ -1,0 +1,163 @@
+{
+  "_comment": "SlowMate v0.3.01 Enhanced Opening Book - Sidelines (5-8 moves for major variations)",
+  
+  "_sicilian_defense": "Sicilian Defense variations",
+  "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+    "Nf3": 50,
+    "Nc3": 30,
+    "f4": 20
+  },
+  
+  "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -": {
+    "d6": 40,
+    "Nc6": 35,
+    "g6": 25
+  },
+  
+  "rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -": {
+    "d4": 60,
+    "Bb5+": 40
+  },
+  
+  "rnbqkbnr/pp2pppp/3p4/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq -": {
+    "cxd4": 70,
+    "Nf6": 30
+  },
+  
+  "rnbqkbnr/pp2pppp/3p4/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq -": {
+    "Nxd4": 80,
+    "Qxd4": 20
+  },
+  
+  "_alekhines_defense": "Alekhine's Defense",
+  "rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+    "e5": 60,
+    "Nc3": 40
+  },
+  
+  "rnbqkb1r/pppppppp/8/4P3/8/8/PPPP1PPP/RNBQKBNR b KQkq -": {
+    "Nd5": 70,
+    "Ne4": 30
+  },
+  
+  "_vienna_game": "Vienna Game variations",
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR b KQkq -": {
+    "Nf6": 50,
+    "Nc6": 30,
+    "Bc5": 20
+  },
+  
+  "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR w KQkq -": {
+    "f4": 45,
+    "Nf3": 35,
+    "Bc4": 20
+  },
+  
+  "rnbqkb1r/pppp1ppp/5n2/4p3/4PP2/2N5/PPPP2PP/R1BQKBNR b KQkq -": {
+    "d5": 50,
+    "exf4": 30,
+    "Bb4": 20
+  },
+  
+  "_nimzo_indian": "Nimzo-Indian Defense variations",
+  "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N5/PP2PPPP/R1BQKBNR w KQkq -": {
+    "e3": 40,
+    "Qc2": 35,
+    "f3": 25
+  },
+  
+  "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR b KQkq -": {
+    "Bxc3+": 50,
+    "0-0": 30,
+    "c5": 20
+  },
+  
+  "rnbqk2r/pppp1ppp/4pn2/8/2PP4/2b1P3/PP3PPP/R1BQKBNR w KQkq -": {
+    "bxc3": 80,
+    "Qxc3": 20
+  },
+  
+  "_benoni_defense": "Benoni Defense variations", 
+  "rnbqkb1r/pp1p1ppp/4pn2/2p5/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq -": {
+    "d5": 60,
+    "dxc5": 40
+  },
+  
+  "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/2N5/PP2PPPP/R1BQKBNR b KQkq -": {
+    "exd5": 70,
+    "g6": 30
+  },
+  
+  "_dutch_defense": "Dutch Defense variations",
+  "rnbqkbnr/ppp1pppp/8/3p4/3P1P2/8/PPP1P1PP/RNBQKBNR b KQkq -": {
+    "g6": 50,
+    "e6": 30,
+    "Nf6": 20
+  },
+  
+  "rnbqkb1r/ppp1pp1p/8/3p2p1/3P1P2/8/PPP1P1PP/RNBQKBNR w KQkq -": {
+    "c4": 50,
+    "g3": 30,
+    "Nf3": 20
+  },
+  
+  "_scandinavian_defense": "Scandinavian Defense variations",
+  "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+    "exd5": 80,
+    "Nc3": 20
+  },
+  
+  "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq -": {
+    "Qxd5": 60,
+    "Nf6": 40
+  },
+  
+  "rnb1kbnr/ppp1pppp/8/3q4/8/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+    "Nc3": 70,
+    "Nf3": 30
+  },
+  
+  "_english_opening": "English Opening variations",
+  "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -": {
+    "e5": 40,
+    "Nf6": 35,
+    "c5": 25
+  },
+  
+  "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR w KQkq -": {
+    "Nc3": 50,
+    "g3": 30,
+    "Nf3": 20
+  },
+  
+  "rnbqkbnr/pppp1ppp/8/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR b KQkq -": {
+    "Nf6": 45,
+    "Nc6": 35,
+    "f5": 20
+  },
+  
+  "_catalan_opening": "Catalan Opening variations",
+  "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR b KQkq -": {
+    "Nf6": 50,
+    "dxc4": 30,
+    "Be7": 20
+  },
+  
+  "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq -": {
+    "Bg2": 60,
+    "Nf3": 40
+  },
+  
+  "_pirc_defense": "Pirc Defense variations",
+  "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/8/PPP2PPP/RNBQKBNR w KQkq -": {
+    "Nc3": 50,
+    "f3": 30,
+    "Be2": 20
+  },
+  
+  "rnbqkb1r/ppp1pp1p/3p1np1/8/3PP3/2N5/PPP2PPP/R1BQKBNR w KQkq -": {
+    "f3": 40,
+    "Be2": 35,
+    "Nf3": 25
+  }
+}

@@ -387,8 +387,10 @@ class DepthSearchEngine(SlowMateEngine):
         # Handle game over positions
         if self.board.is_game_over():
             if self.board.is_checkmate():
-                # Return mate score relative to search depth
-                mate_score = 10000 - (self.search_config['max_depth'] - depth)
+                # Fixed: Correct mate score calculation with reasonable values
+                # Mate score should reflect actual plies to mate
+                plies_to_mate = self.search_config['max_depth'] - depth + 1
+                mate_score = 1000 + plies_to_mate  # Use 1000 as base (10 pawns) + distance
                 return (-mate_score if maximizing_player else mate_score), []
             else:
                 # Stalemate or draw
@@ -400,21 +402,34 @@ class DepthSearchEngine(SlowMateEngine):
             depth <= 0):
             return self._quiescence_search(maximizing_player, depth=4)
         
-        # Use simple material evaluation during search to avoid hanging
-        score = 0
-        piece_values = {chess.PAWN: 100, chess.KNIGHT: 300, chess.BISHOP: 300, 
-                        chess.ROOK: 500, chess.QUEEN: 900, chess.KING: 0}
-        for square in chess.SQUARES:
-            piece = self.board.piece_at(square)
-            if piece:
-                value = piece_values.get(piece.piece_type, 0)
-                score += value if piece.color == chess.WHITE else -value
-        
-        # Adjust score based on maximizing player
-        if not maximizing_player:
-            score = -score
-        
-        return score, []
+        # Use intelligence evaluation system (with all the emergency caps)
+        try:
+            score = self.intelligence._evaluate_position()
+            # Adjust score based on maximizing player (intelligence returns from white's perspective)
+            if not maximizing_player:
+                score = -score
+            return score, []
+        except Exception as e:
+            # Fallback to simple evaluation only if intelligence fails
+            print(f"Intelligence evaluation failed: {e}, using fallback")
+            score = 0
+            piece_values = {chess.PAWN: 100, chess.KNIGHT: 300, chess.BISHOP: 300, 
+                            chess.ROOK: 500, chess.QUEEN: 900, chess.KING: 0}
+            for square in chess.SQUARES:
+                piece = self.board.piece_at(square)
+                if piece:
+                    value = piece_values.get(piece.piece_type, 0)
+                    score += value if piece.color == chess.WHITE else -value
+            
+            # Apply emergency cap to fallback too
+            if abs(score) > 200:
+                score = 200 if score > 0 else -200
+            
+            # Adjust score based on maximizing player
+            if not maximizing_player:
+                score = -score
+            
+            return score, []
     
     def _quiescence_search(self, maximizing_player: bool, depth: int = 4) -> Tuple[int, List[chess.Move]]:
         """
@@ -592,7 +607,7 @@ class DepthSearchEngine(SlowMateEngine):
     
     def _is_mate_score(self, score: int) -> bool:
         """Check if score indicates a forced mate."""
-        return abs(score) > 9000  # Mate scores are typically 10000 +/- depth
+        return abs(score) > 900  # Mate scores are 1000+ (anything above 9 pawns)
     
     def _send_uci_info(self, depth: int, score: int, pv: List[chess.Move], nodes: int):
         """
@@ -629,9 +644,9 @@ class DepthSearchEngine(SlowMateEngine):
         
         # Enhanced score interpretation
         if self._is_mate_score(score):
-            # Calculate mate distance more precisely
-            mate_distance = (10000 - abs(score))
-            mate_moves = max(1, mate_distance // 2)  # Ensure at least mate in 1
+            # Fixed: Calculate mate distance correctly with new scoring
+            mate_distance = abs(score) - 1000  # Remove the 1000 base
+            mate_moves = max(1, (mate_distance + 1) // 2)  # Convert plies to moves
             if score < 0:
                 mate_moves = -mate_moves
             score_str = f"mate {mate_moves}"

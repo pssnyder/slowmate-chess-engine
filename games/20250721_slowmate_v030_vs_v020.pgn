@@ -1,0 +1,36 @@
+[Event "Computer chess game"]
+[Site "MAIN-DESKTOP"]
+[Date "2025.07.21"]
+[Round "?"]
+[White "SlowMate_v0.3.0_BETA"]
+[Black "SlowMate_v0.2.0_BETA"]
+[Result "*"]
+[BlackElo "200"]
+[ECO "A00"]
+[Opening "Dunst (Sleipner-Heinrichsen-Van Geet) Opening"]
+[Time "23:48:40"]
+[WhiteElo "2000"]
+[TimeControl "300"]
+[Termination "normal"]
+[PlyCount "53"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. Nc3 {(Nb1-c3) -25.00/8 0} Nc6 {+0.90/1 0} 2. Nd5 {(Nc3-d5) -15.00/8 0}
+e6 {+2.53/1 0} 3. Nxc7+ {(Nd5xc7+) +177.00/8 0} Qxc7 {+3.72/1 0} 4. Nf3
+{(Ng1-f3) -257.00/8 0} Nb4 {+5.77/1 0} 5. a3 {(a2-a3) +59.00/8 0} Qc4
+{+7.12/1 0} 6. e4 {(e2-e4) +M500/8 0} Qxf1+ {+8.45/1 0} 7. Rxf1 {(Rh1xf1)
++M500/8 0} Nxc2+ {+0.43/1 0} 8. Qxc2 {(Qd1xc2) +M500/8 0} Bxa3 {-1.92/1 0}
+9. Rxa3 {(Ra1xa3) +M500/8 0} Rb8 {-8.32/1 0} 10. Qxc8+ {(Qc2xc8+) +M500/8
+0} Rxc8 {+0.76/1} 11. Rc3 {(Ra3-c3) +M500/8 0} Rxc3 {+4.27/1 0} 12. dxc3
+{(d2xc3) +285.00/8 0} f5 {-2.68/1 0} 13. Ng5 {(Nf3-g5) +M500/8 0} h6
+{-1.32/1 0} 14. Nxe6 {(Ng5xe6) +M500/8 0} dxe6 {-0.06/1 0} 15. Be3
+{(Bc1-e3) +191.00/8 0} fxe4 {-0.18/1 0} 16. Bd4 {(Be3-d4) +M500/8 0} e5
+{-0.79/1 0} 17. Bxe5 {(Bd4xe5) +M500/8 0} Rh7 {-0.93/1 0} 18. Bd4 {(Be5-d4)
++213.00/8 0} a5 {-0.83/1 0} 19. Bxg7 {(Bd4xg7) +234.00/8 0} Rxg7 {+0.67/1
+0} 20. g3 {(g2-g3) +13.00/8 0} Rf7 {+3.42/1 0} 21. f3 {(f2-f3) +115.00/8 0}
+Rxf3 {+4.50/1 0} 22. Rxf3 {(Rf1xf3) +250.00/8 0} exf3 {+1.50/1 0} 23. b4
+{(b2-b4) -85.00/8 0} axb4 {+2.55/1} 24. cxb4 {(c3xb4) -75.00/8 0} Kf8
+{+1.80/1} 25. Kf2 {(Ke1-f2) -147.00/8 0} Kg7 {+1.40/1} 26. h4 {(h2-h4)
+-120.00/8 0} Kh8 {+1.17/1 0} 27. b5 {(b4-b5) -102.00/8 0 White resigns} *
+

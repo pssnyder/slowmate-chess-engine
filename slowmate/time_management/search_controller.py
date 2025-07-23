@@ -290,6 +290,22 @@ class SearchController:
             # Single depth search (fallback)
             return self._single_depth_search(position, self.config.max_depth, allocation)
     
+    
+    def _is_mate_score(self, score: int) -> bool:
+        """Check if score indicates mate."""
+        return abs(score) > 25000
+    
+    def _convert_mate_score_to_uci(self, score: int) -> str:
+        """Convert internal mate score to UCI format."""
+        if not self._is_mate_score(score):
+            return f"cp {score}"
+            
+        mate_distance = abs(30000 - abs(score))
+        mate_moves = max(1, (mate_distance + 1) // 2)
+        if score < 0:
+            mate_moves = -mate_moves
+        return f"mate {mate_moves}"
+
     def _search_fixed_depth(self, position: chess.Board, depth: int) -> SearchResult:
         """Search to fixed depth."""
         from .time_allocation import TimeAllocation, AllocationStrategy

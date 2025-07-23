@@ -1,25 +1,16 @@
 #!/usr/bin/env python3
 """
-SlowMate Chess Engine - UCI Executable
+SlowMate Chess Engine - UCI Entry Point (v0.1.0 Baseline)
 
-This is the main executable for the SlowMate chess engine.
-It implements the UCI (Universal Chess Interface) protocol for
-compatibility with chess GUIs like Nibbler, Arena, and others.
-
-Usage:
-    python slowmate_uci.py
-
-The engine will run in UCI mode, listening for commands on stdin
-and responding on stdout according to UCI protocol specifications.
+Tournament-winning baseline version.
 """
 
-import sys
-import os
+from slowmate.uci import UCIInterface
 
-# Add the slowmate package to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from slowmate.uci import main
+def main():
+    """Run the UCI interface."""
+    uci = UCIInterface()
+    uci.run()
 
 if __name__ == "__main__":
     main()
