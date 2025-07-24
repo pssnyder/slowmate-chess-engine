@@ -114,6 +114,16 @@ class UCIInterface:
             self._handle_stop()
         elif cmd == "ponderhit":
             self._handle_ponderhit()
+        elif cmd == "eval":
+            self._handle_eval()
+        elif cmd == "d":
+            self._handle_display()
+        elif cmd == "flip":
+            self._handle_flip()
+        elif cmd == "perft":
+            self._handle_perft(parts)
+        elif cmd == "clearhash":
+            self._handle_clearhash()
         elif cmd == "quit":
             self.running = False
     
@@ -162,6 +172,11 @@ class UCIInterface:
                     value = int(option_value)
                     if option_data['min'] <= value <= option_data['max']:
                         self.options[option_name]['value'] = value
+                        
+                        # Handle special options
+                        if option_name == "Hash":
+                            self.engine.set_hash_size(value)
+                        
                 except ValueError:
                     pass
             elif option_data['type'] == 'string':
@@ -284,37 +299,54 @@ class UCIInterface:
                 # Use reasonable time allocation
                 max_time = 5000  # 5 seconds default
             
-            # FIXED: Initialize time manager properly
+            # ENHANCED: Initialize search with alpha-beta and hash table
             self.time_manager.search_start_time = time.time()
+            self.engine.search_intelligence.reset_stats()
             
             # Search variables
             best_move = None
             best_pv = []
             nodes_searched = 0
             
-            # SIMPLIFIED: Iterative deepening with consistent depth progression
+            # UCI info callback for current move updates
+            def info_callback(current_move, move_number):
+                if self.options.get('UCI_ShowCurrLine', {}).get('value', False):
+                    print(f"info currmove {current_move} currmovenumber {move_number}", flush=True)
+            
+            # ENHANCED: Iterative deepening with alpha-beta search
             for depth in range(1, fixed_depth + 1):
                 if self.stop_thinking:
                     break
                 
-                # Generate PV for this depth (SIMPLIFIED)
-                pv_moves = []
-                board_copy = copy.deepcopy(self.engine.board)
-                temp_best_move = None
+                # Alpha-beta search at current depth
+                score_cp, temp_best_move = self.engine.search_intelligence.search_with_alpha_beta(
+                    self.engine.board, depth, info_callback=info_callback
+                )
                 
-                # Simple PV generation
-                for ply in range(depth):
-                    from slowmate.intelligence import select_best_move_simple
-                    move = select_best_move_simple(board_copy)
-                    if move is None or move not in board_copy.legal_moves:
-                        break
+                if temp_best_move:
+                    best_move = temp_best_move
                     
-                    pv_moves.append(move.uci())
-                    if ply == 0:
-                        temp_best_move = move
+                    # Generate PV from best move
+                    pv_moves = [best_move.uci()]
+                    board_copy = copy.deepcopy(self.engine.board)
+                    board_copy.push(best_move)
                     
-                    board_copy.push(move)
-                    nodes_searched += len(list(board_copy.legal_moves))
+                    # Extend PV with additional moves (simplified)
+                    for ply in range(1, min(depth, 3)):
+                        from slowmate.intelligence import select_best_move_simple
+                        next_move = select_best_move_simple(board_copy)
+                        if next_move and next_move in board_copy.legal_moves:
+                            pv_moves.append(next_move.uci())
+                            board_copy.push(next_move)
+                        else:
+                            break
+                    
+                    best_pv = pv_moves
+                
+                # Get search statistics
+                search_stats = self.engine.get_search_stats()
+                hash_stats = self.engine.get_hash_stats()
+                nodes_searched = search_stats.get('nodes_searched', 0)
                 
                 if temp_best_move:
                     best_move = temp_best_move
@@ -327,14 +359,25 @@ class UCIInterface:
                 elapsed_time = int((time.time() - self.time_manager.search_start_time) * 1000)
                 nps = (nodes_searched * 1000) // max(elapsed_time, 1)
                 
-                # Output UCI info with consistent format
+                # Format score properly (mate or centipawn)
+                if score_cp > 29000:  # Mate score for current side
+                    mate_in = (30000 - score_cp + 1) // 2
+                    score_str = f"score mate {mate_in}"
+                elif score_cp < -29000:  # Mate score against current side
+                    mate_in = -(score_cp + 30000 - 1) // 2
+                    score_str = f"score mate {mate_in}"
+                else:
+                    score_str = f"score cp {score_cp}"
+                
+                # Output UCI info with enhanced information
                 info_parts = [
                     f"depth {depth}",
                     f"seldepth {depth}",
                     f"multipv 1", 
-                    f"score cp {score_cp}",
+                    score_str,
                     f"nodes {nodes_searched}",
                     f"nps {nps}",
+                    f"hashfull {hash_stats.get('hash_full', 0)}",
                     f"time {elapsed_time}", 
                     f"pv {' '.join(best_pv)}"
                 ]
@@ -370,6 +413,7 @@ class UCIInterface:
         board = self.engine.board
         
         if board.is_checkmate():
+            # Return mate score based on whose turn it is
             return -30000 if board.turn else 30000
         
         if board.is_stalemate() or board.is_insufficient_material():
@@ -447,7 +491,128 @@ class UCIInterface:
         """Handle stop command."""
         self.stop_thinking = True
     
+    def _handle_eval(self):
+        """Handle eval command - display position evaluation."""
+        try:
+            import chess
+            score = self._get_basic_score()
+            print(f"Total evaluation: {score / 100:.2f}")
+            
+            # Show detailed breakdown
+            material = self._get_material_evaluation()
+            print(f"Material: {material:.2f}")
+            
+            # Position info
+            print(f"FEN: {self.engine.board.fen()}")
+            print(f"Key: {hash(self.engine.board.fen()) & 0xFFFFFFFF:08x}")
+            print(f"Legal moves: {len(list(self.engine.board.legal_moves))}")
+            
+            # Game state
+            if self.engine.board.is_checkmate():
+                print("Position: Checkmate")
+            elif self.engine.board.is_stalemate():
+                print("Position: Stalemate")
+            elif self.engine.board.is_check():
+                print("Position: Check")
+            else:
+                print("Position: Normal")
+            
+            # Game rules status
+            game_status = self.engine.game_rules.get_game_status(self.engine.board)
+            if game_status['can_claim_draw']:
+                print("\nDRAW INFORMATION:")
+                rep_info = game_status['repetition_info']
+                fifty_info = game_status['fifty_move_info']
+                
+                if rep_info['can_claim_threefold']:
+                    print(f"  Threefold repetition: YES (count: {rep_info['current_repetitions']})")
+                elif rep_info['approaching_threefold']:
+                    print(f"  Approaching threefold: count {rep_info['current_repetitions']}")
+                
+                if fifty_info['can_claim_fifty']:
+                    print(f"  50-move rule: YES (halfmoves: {fifty_info['halfmove_clock']})")
+                elif fifty_info['approaching_fifty']:
+                    print(f"  Approaching 50-move: {fifty_info['moves_to_fifty']} moves left")
+                    
+        except Exception as e:
+            print(f"Error in eval: {e}")
+    
+    def _handle_display(self):
+        """Handle d command - display current board position."""
+        try:
+            import chess
+            print(self.engine.board)
+            print(f"FEN: {self.engine.board.fen()}")
+            print(f"Turn: {'White' if self.engine.board.turn else 'Black'}")
+            print(f"Legal moves: {len(list(self.engine.board.legal_moves))}")
+            
+            # Show castling rights
+            castling = []
+            if self.engine.board.has_kingside_castling_rights(True):
+                castling.append("K")
+            if self.engine.board.has_queenside_castling_rights(True):
+                castling.append("Q") 
+            if self.engine.board.has_kingside_castling_rights(False):
+                castling.append("k")
+            if self.engine.board.has_queenside_castling_rights(False):
+                castling.append("q")
+            
+            print(f"Castling: {''.join(castling) if castling else '-'}")
+            
+            # Show en passant
+            if self.engine.board.ep_square:
+                print(f"En passant: {chess.square_name(self.engine.board.ep_square)}")
+            
+            # Show draw-related counters
+            print(f"Halfmove clock: {self.engine.board.halfmove_clock}")
+            print(f"Fullmove number: {self.engine.board.fullmove_number}")
+            
+        except Exception as e:
+            print(f"Error in display: {e}")
+    
+    def _handle_flip(self):
+        """Handle flip command - flip board display."""
+        # For console display, we can't really flip the board
+        # But we can acknowledge the command
+        print("Board flipped (console mode)")
+    
     def _handle_ponderhit(self):
         """Handle ponderhit command."""
-        # For now, just continue thinking
+        # TODO: Implement pondering
         pass
+    
+    def _handle_perft(self, parts):
+        """Handle perft command - performance test."""
+        try:
+            depth = int(parts[1]) if len(parts) > 1 else 5
+            if depth > 7:
+                print(f"Depth {depth} too large, limiting to 7")
+                depth = 7
+            
+            nodes = self._perft(self.engine.board, depth)
+            print(f"Nodes searched: {nodes}")
+        except (ValueError, IndexError):
+            print("Usage: perft <depth>")
+        except Exception as e:
+            print(f"Error in perft: {e}")
+    
+    def _perft(self, board, depth):
+        """Recursive perft calculation."""
+        if depth == 0:
+            return 1
+        
+        nodes = 0
+        for move in board.legal_moves:
+            board.push(move)
+            nodes += self._perft(board, depth - 1)
+            board.pop()
+        return nodes
+    
+    def _handle_clearhash(self):
+        """Handle clearhash command - clear the hash table."""
+        try:
+            self.engine.clear_hash()
+            if self.options.get('Verbose Output', {}).get('value', False):
+                print("info string Hash table cleared")
+        except Exception as e:
+            print(f"Error clearing hash: {e}")

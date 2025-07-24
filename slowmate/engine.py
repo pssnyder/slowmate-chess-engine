@@ -1,11 +1,13 @@
 """
-SlowMate Chess Engine - Enhanced Engine Core (v0.4.01)
+SlowMate Chess Engine - Enhanced Engine Core (v0.4.05)
 
-Enhanced engine with professional statistics tracking and transparency.
+Enhanced engine with game rules compliance and draw detection.
 """
 
 import chess
 from typing import Optional, List, Dict, Any
+from .game_rules import GameRulesManager
+from .search_intelligence import TranspositionTable, SearchIntelligence
 
 class SlowMateEngine:
     """Enhanced chess engine with professional features."""
@@ -13,8 +15,15 @@ class SlowMateEngine:
     def __init__(self):
         """Initialize the enhanced engine."""
         self.board = chess.Board()
-        self.version = "0.4.01"
+        self.version = "0.4.06"
         self.name = "SlowMate"
+        
+        # Search intelligence and hash table
+        self.hash_table = TranspositionTable(16)  # 16MB default
+        self.search_intelligence = SearchIntelligence(self.hash_table)
+        
+        # Game rules and draw detection
+        self.game_rules = GameRulesManager()
         
         # Game statistics
         self.game_stats = {
@@ -40,6 +49,10 @@ class SlowMateEngine:
         
         # Clear position history for new position
         self.position_history = [self.board.fen()]
+        
+        # Add to game rules manager
+        self.game_rules.reset_game()
+        self.game_rules.add_position(self.board)
     
     def make_move(self, move_uci: str):
         """Make a move in UCI format."""
@@ -48,6 +61,10 @@ class SlowMateEngine:
             if move in self.board.legal_moves:
                 self.board.push(move)
                 self.game_stats['moves_played'] += 1
+                
+                # Add position to game rules tracking
+                self.game_rules.add_position(self.board, move)
+                
                 self.position_history.append(self.board.fen())
                 self._update_game_stats()
                 return True
@@ -111,15 +128,33 @@ class SlowMateEngine:
         """Get comprehensive position information."""
         return {
             'fen': self.board.fen(),
-            'legal_moves': len(self.board.legal_moves),
+            'legal_moves': len(list(self.board.legal_moves)),
             'game_phase': self.get_game_phase(),
             'material_balance': self.get_material_balance(),
             'is_check': self.board.is_check(),
             'is_repetition': self.is_repetition(),
             'halfmove_clock': self.board.halfmove_clock,
             'fullmove_number': self.board.fullmove_number,
-            'castling_rights': str(self.board.castling_rights)
+            'castling_rights': str(self.board.castling_rights),
+            'game_rules_status': self.game_rules.get_game_status(self.board)
         }
+    
+    def set_hash_size(self, size_mb: int):
+        """Set hash table size."""
+        self.hash_table = TranspositionTable(size_mb)
+        self.search_intelligence = SearchIntelligence(self.hash_table)
+    
+    def clear_hash(self):
+        """Clear the hash table."""
+        self.hash_table.clear()
+    
+    def get_hash_stats(self) -> Dict[str, int]:
+        """Get hash table statistics."""
+        return self.hash_table.get_stats()
+    
+    def get_search_stats(self) -> Dict[str, Any]:
+        """Get search statistics."""
+        return self.search_intelligence.get_search_stats()
     
     def _update_game_stats(self):
         """Update internal game statistics."""
