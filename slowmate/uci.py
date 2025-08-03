@@ -26,9 +26,17 @@ class UCIInterface:
         # UCI Options (Stockfish-compatible)
         self.options = {
             # Search Configuration
-            'Hash': {'type': 'spin', 'default': 16, 'min': 1, 'max': 1024, 'value': 16},
+            'Hash': {'type': 'spin', 'default': 64, 'min': 1, 'max': 1024, 'value': 64},
             'Threads': {'type': 'spin', 'default': 1, 'min': 1, 'max': 16, 'value': 1},
             'MultiPV': {'type': 'spin', 'default': 1, 'min': 1, 'max': 10, 'value': 1},
+            'Clear Hash': {'type': 'button', 'value': False},
+            
+            # Advanced Search Options  
+            'Contempt': {'type': 'spin', 'default': 0, 'min': -100, 'max': 100, 'value': 0},
+            'NullMove': {'type': 'check', 'default': True, 'value': True},
+            'QuiescenceSearch': {'type': 'check', 'default': True, 'value': True},
+            'QuiescenceDepth': {'type': 'spin', 'default': 6, 'min': 0, 'max': 16, 'value': 6},
+            'NullMoveReduction': {'type': 'spin', 'default': 2, 'min': 1, 'max': 4, 'value': 2},
             
             # Time Management
             'Move Overhead': {'type': 'spin', 'default': 10, 'min': 0, 'max': 5000, 'value': 10},
@@ -167,6 +175,17 @@ class UCIInterface:
             
             if option_data['type'] == 'check':
                 self.options[option_name]['value'] = option_value.lower() == 'true'
+                
+                # Handle check options
+                if option_name == "NullMove":
+                    self.engine.search_engine.null_move_enabled = option_value.lower() == 'true'
+                elif option_name == "QuiescenceSearch":
+                    self.engine.search_engine.quiescence_enabled = option_value.lower() == 'true'
+                    
+            elif option_data['type'] == 'button':
+                # Handle button options
+                if option_name == "Clear Hash":
+                    self.engine.clear_hash()
             elif option_data['type'] == 'spin':
                 try:
                     value = int(option_value)
@@ -176,6 +195,12 @@ class UCIInterface:
                         # Handle special options
                         if option_name == "Hash":
                             self.engine.set_hash_size(value)
+                        elif option_name == "Contempt":
+                            self.engine.set_contempt(value)
+                        elif option_name == "QuiescenceDepth":
+                            self.engine.search_engine.max_quiescence_depth = value
+                        elif option_name == "NullMoveReduction":
+                            self.engine.search_engine.null_move_reduction = value
                         
                 except ValueError:
                     pass
@@ -243,12 +268,12 @@ class UCIInterface:
         
         # Set time control in time manager
         self.time_manager.set_time_control(
-            wtime=go_params.get('wtime'),
-            btime=go_params.get('btime'),
-            winc=go_params.get('winc'),
-            binc=go_params.get('binc'),
-            movestogo=go_params.get('movestogo'),
-            movetime=go_params.get('movetime'),
+            wtime=go_params.get('wtime', 0),
+            btime=go_params.get('btime', 0),
+            winc=go_params.get('winc', 0),
+            binc=go_params.get('binc', 0),
+            movestogo=go_params.get('movestogo', 0),
+            movetime=go_params.get('movetime', 0),
             infinite=go_params.get('infinite', False),
             ponder=go_params.get('ponder', False)
         )
@@ -280,7 +305,7 @@ class UCIInterface:
         return params
     
     def _search_with_time_management(self, go_params):
-        """STABLE SEARCH with fixed depth and real-time UCI output."""
+        """ENHANCED SEARCH with NegaScout and real-time UCI output."""
         import copy
         
         try:
@@ -290,86 +315,67 @@ class UCIInterface:
                 print("bestmove 0000", flush=True)
                 return
             
-            # FIXED: Use consistent search depth (no artificial time limits)
+            # Search parameters
             fixed_depth = go_params.get('depth', 8)  # Default to depth 8
             if 'movetime' in go_params:
-                # Still respect movetime but don't artificially limit depth
                 max_time = go_params['movetime']
             else:
-                # Use reasonable time allocation
                 max_time = 5000  # 5 seconds default
             
-            # ENHANCED: Initialize search with alpha-beta and hash table
+            # Initialize search engine
             self.time_manager.search_start_time = time.time()
-            self.engine.search_intelligence.reset_stats()
+            self.engine.search_engine.reset_stats()
+            self.engine.search_engine.max_search_time = int(max_time)
             
             # Search variables
             best_move = None
             best_pv = []
             nodes_searched = 0
             
-            # UCI info callback for current move updates
-            def info_callback(current_move, move_number):
-                if self.options.get('UCI_ShowCurrLine', {}).get('value', False):
-                    print(f"info currmove {current_move} currmovenumber {move_number}", flush=True)
-            
-            # ENHANCED: Iterative deepening with alpha-beta search
+            # Iterative deepening with NegaScout search
             for depth in range(1, fixed_depth + 1):
                 if self.stop_thinking:
                     break
                 
-                # Alpha-beta search at current depth
-                score_cp, temp_best_move = self.engine.search_intelligence.search_with_alpha_beta(
-                    self.engine.board, depth, info_callback=info_callback
+                # NegaScout search at current depth
+                score_cp, temp_best_move = self.engine.search_engine.negascout_search(
+                    self.engine.board, depth, -3000, 3000
                 )
                 
                 if temp_best_move:
                     best_move = temp_best_move
-                    
-                    # Generate PV from best move
-                    pv_moves = [best_move.uci()]
-                    board_copy = copy.deepcopy(self.engine.board)
-                    board_copy.push(best_move)
-                    
-                    # Extend PV with additional moves (simplified)
-                    for ply in range(1, min(depth, 3)):
-                        from slowmate.intelligence import select_best_move_simple
-                        next_move = select_best_move_simple(board_copy)
-                        if next_move and next_move in board_copy.legal_moves:
-                            pv_moves.append(next_move.uci())
-                            board_copy.push(next_move)
-                        else:
-                            break
-                    
-                    best_pv = pv_moves
+                    best_pv = self.engine.search_engine.get_pv()
+                else:
+                    # Fallback: Use first legal move and get a basic evaluation
+                    legal_moves = list(self.engine.board.legal_moves)
+                    if legal_moves:
+                        best_move = legal_moves[0]
+                        best_pv = [best_move.uci()]
+                        # Get basic position evaluation
+                        score_cp = self.engine.search_engine.evaluate_position(self.engine.board)
+                    else:
+                        # No legal moves (shouldn't happen in normal play)
+                        score_cp = 0
                 
                 # Get search statistics
                 search_stats = self.engine.get_search_stats()
-                hash_stats = self.engine.get_hash_stats()
                 nodes_searched = search_stats.get('nodes_searched', 0)
                 
-                if temp_best_move:
-                    best_move = temp_best_move
-                    best_pv = pv_moves.copy()
-                
-                # SIMPLIFIED: Basic evaluation
-                score_cp = self._get_basic_score()
-                
-                # FIXED: Calculate stats properly
+                # Calculate stats
                 elapsed_time = int((time.time() - self.time_manager.search_start_time) * 1000)
                 nps = (nodes_searched * 1000) // max(elapsed_time, 1)
                 
-                # Format score properly (mate or centipawn)
-                if score_cp > 29000:  # Mate score for current side
+                # Format score
+                if score_cp > 29000:
                     mate_in = (30000 - score_cp + 1) // 2
                     score_str = f"score mate {mate_in}"
-                elif score_cp < -29000:  # Mate score against current side
+                elif score_cp < -29000:
                     mate_in = -(score_cp + 30000 - 1) // 2
                     score_str = f"score mate {mate_in}"
                 else:
                     score_str = f"score cp {score_cp}"
                 
-                # Output UCI info with enhanced information
+                # Output UCI info
                 info_parts = [
                     f"depth {depth}",
                     f"seldepth {depth}",
@@ -377,20 +383,18 @@ class UCIInterface:
                     score_str,
                     f"nodes {nodes_searched}",
                     f"nps {nps}",
-                    f"hashfull {hash_stats.get('hash_full', 0)}",
+                    f"hashfull {search_stats.get('hash_full', 0)}",
                     f"time {elapsed_time}", 
-                    f"pv {' '.join(best_pv)}"
+                    f"pv {' '.join(best_pv[:8])}"
                 ]
                 
                 print(f"info {' '.join(info_parts)}", flush=True)
                 
-                # FIXED: Don't break early due to time (let it reach full depth)
-                # Only break if we're really running out of time
-                if elapsed_time > max_time * 0.95:  # 95% instead of 80%
+                # Check time limit
+                if elapsed_time > max_time * 0.95:
                     break
                 
-                # Small delay for real-time feel
-                time.sleep(0.05)  # Shorter delay
+                time.sleep(0.01)
             
             # Output best move
             if best_move:

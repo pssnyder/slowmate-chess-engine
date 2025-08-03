@@ -1,13 +1,13 @@
 """
-SlowMate Chess Engine - Enhanced Engine Core (v0.4.05)
+SlowMate Chess Engine - Enhanced Engine Core (v0.5.0)
 
-Enhanced engine with game rules compliance and draw detection.
+Enhanced engine with advanced NegaScout search architecture and comprehensive features.
 """
 
 import chess
 from typing import Optional, List, Dict, Any
 from .game_rules import GameRulesManager
-from .search_intelligence import TranspositionTable, SearchIntelligence
+from .negascout_search import AdvancedSearchEngine
 
 class SlowMateEngine:
     """Enhanced chess engine with professional features."""
@@ -15,12 +15,11 @@ class SlowMateEngine:
     def __init__(self):
         """Initialize the enhanced engine."""
         self.board = chess.Board()
-        self.version = "0.4.06"
+        self.version = "0.5.0"
         self.name = "SlowMate"
         
-        # Search intelligence and hash table
-        self.hash_table = TranspositionTable(16)  # 16MB default
-        self.search_intelligence = SearchIntelligence(self.hash_table)
+        # Advanced search engine with NegaScout
+        self.search_engine = AdvancedSearchEngine(hash_size_mb=64)  # 64MB default
         
         # Game rules and draw detection
         self.game_rules = GameRulesManager()
@@ -37,7 +36,7 @@ class SlowMateEngine:
         # Position history for repetition detection
         self.position_history = []
     
-    def set_position(self, fen: str = None):
+    def set_position(self, fen: Optional[str] = None):
         """Set board position from FEN."""
         if fen:
             self.board = chess.Board(fen)
@@ -141,20 +140,29 @@ class SlowMateEngine:
     
     def set_hash_size(self, size_mb: int):
         """Set hash table size."""
-        self.hash_table = TranspositionTable(size_mb)
-        self.search_intelligence = SearchIntelligence(self.hash_table)
+        self.search_engine.set_hash_size(size_mb)
     
     def clear_hash(self):
         """Clear the hash table."""
-        self.hash_table.clear()
+        self.search_engine.clear_hash()
     
     def get_hash_stats(self) -> Dict[str, int]:
         """Get hash table statistics."""
-        return self.hash_table.get_stats()
+        return self.search_engine.get_stats()
     
     def get_search_stats(self) -> Dict[str, Any]:
         """Get search statistics."""
-        return self.search_intelligence.get_search_stats()
+        return self.search_engine.get_stats()
+    
+    def set_contempt(self, contempt: int):
+        """Set contempt factor in centipawns."""
+        self.search_engine.set_contempt(contempt)
+    
+    def search_position(self, depth: int = 6, max_time: int = 5000) -> tuple[int, Optional[chess.Move]]:
+        """Search current position using advanced NegaScout algorithm."""
+        self.search_engine.reset_stats()
+        self.search_engine.max_search_time = max_time
+        return self.search_engine.negascout_search(self.board, depth, -50000, 50000)
     
     def _update_game_stats(self):
         """Update internal game statistics."""

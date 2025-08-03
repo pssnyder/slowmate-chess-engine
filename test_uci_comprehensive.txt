@@ -1,0 +1,12 @@
+uci
+isready
+setoption name Contempt value 10
+setoption name NullMove value true
+setoption name QuiescenceSearch value true
+position startpos
+go depth 4
+position startpos moves e2e4
+go depth 3
+position startpos moves e2e4 e7e5 g1f3
+go depth 2
+quit
