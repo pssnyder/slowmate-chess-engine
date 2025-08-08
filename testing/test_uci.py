@@ -12,7 +12,7 @@ def test_uci_engine():
     
     # Path to the engine
     engine_path = "S:/Maker Stuff/Programming/SlowMate Chess Engine/slowmate_chess_engine/.venv/Scripts/python.exe"
-    script_path = "slowmate_uci.py"
+    script_path = "slowmate/slowmate_uci.py"
     
     print("Testing SlowMate UCI Interface")
     print("=" * 40)

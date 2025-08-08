@@ -89,7 +89,7 @@ slowmate/time_management/
 
 ### Integration Points
 - **Search System**: Integrate with existing `slowmate/search/` modules
-- **UCI Interface**: Enhance `slowmate_uci.py` with time command support
+- **UCI Interface**: Enhance `slowmate/slowmate_uci.py` with time command support
 - **Engine Core**: Update `slowmate/engine.py` for time-aware operation
 - **Statistics**: Add time management metrics to existing statistics system
 

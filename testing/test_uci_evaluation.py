@@ -12,7 +12,7 @@ def test_uci_evaluation():
     print("=== Testing UCI Interface with Evaluation ===")
     
     # Start UCI engine
-    uci_script = os.path.join(os.path.dirname(__file__), "slowmate_uci.py")
+    uci_script = os.path.join(os.path.dirname(__file__), "slowmate", "slowmate_uci.py")
     python_exe = r"S:/Maker Stuff/Programming/SlowMate Chess Engine/slowmate_chess_engine/.venv/Scripts/python.exe"
     
     proc = subprocess.Popen(
