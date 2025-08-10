@@ -1,171 +1,202 @@
 """
-SlowMate Chess Engine - Enhanced Engine Core (v0.5.0)
-
-Enhanced engine with advanced NegaScout search architecture and comprehensive features.
+SlowMate Chess Engine        self.move_orderer = MoveOrderer()
+        self.uci = UCIProtocol(self)
+        self.nodes = 0
+        self.max_depth = 4  # Configurable via UCI option MaxDepth
+        self.search_deadline = None
+        self.last_score = None
+        
+    def new_game(self):Engine Interface
+Version: 1.0.0-BETA
+Based on stable v0.2.01 architecture
 """
 
 import chess
-from typing import Optional, List, Dict, Any
-from .game_rules import GameRulesManager
-from .negascout_search import AdvancedSearchEngine
+import time
+from typing import Optional, List, Tuple
+
+from .core.board import Board
+from .core.moves import MoveGenerator
+from .core.evaluate import Evaluator
+from .search.enhanced import TranspositionTable, MoveOrderer, NodeType
+from .uci.protocol import UCIProtocol
+
 
 class SlowMateEngine:
-    """Enhanced chess engine with professional features."""
+    """Main chess engine interface with enhanced search capabilities."""
     
     def __init__(self):
-        """Initialize the enhanced engine."""
-        self.board = chess.Board()
-        self.version = "0.5.0"
-        self.name = "SlowMate"
+        """Initialize the chess engine."""
+        self.board = Board()
+        self.move_generator = MoveGenerator(self.board)
+        self.evaluator = Evaluator()
+        self.tt = TranspositionTable()
+        self.move_orderer = MoveOrderer()
+        self.uci = UCIProtocol(self)
+        self.nodes = 0
+        self.max_depth = 4  # Configurable via UCI option MaxDepth
+        self.search_deadline = None
+        self.last_score = None
         
-        # Advanced search engine with NegaScout
-        self.search_engine = AdvancedSearchEngine(hash_size_mb=64)  # 64MB default
+    def new_game(self):
+        """Reset the engine for a new game."""
+        self.board = Board()
+        self.move_generator = MoveGenerator(self.board)
+        self.tt = TranspositionTable()  # Clear transposition table
+        self.move_orderer = MoveOrderer()  # Reset move ordering
         
-        # Game rules and draw detection
-        self.game_rules = GameRulesManager()
-        
-        # Game statistics
-        self.game_stats = {
-            'moves_played': 0,
-            'positions_evaluated': 0,
-            'search_nodes': 0,
-            'game_phase': 'opening',
-            'material_balance': 0
-        }
-        
-        # Position history for repetition detection
-        self.position_history = []
-    
-    def set_position(self, fen: Optional[str] = None):
-        """Set board position from FEN."""
-        if fen:
-            self.board = chess.Board(fen)
+    def set_position(self, position):
+        """Set the board position."""
+        if position == "startpos":
+            self.board = Board()
         else:
-            self.board = chess.Board()
+            self.board.set_fen(position)
+        self.move_generator = MoveGenerator(self.board)
         
-        # Update game statistics
-        self._update_game_stats()
+    def make_move(self, move):
+        """Make a move on the board."""
+        self.board.make_move(move)
         
-        # Clear position history for new position
-        self.position_history = [self.board.fen()]
+    def search(self, time_limit_ms: Optional[int] = None, depth_override: Optional[int] = None, *, time_limit: Optional[int] = None) -> Optional[chess.Move]:
+        """Search for the best move using a fixed-depth alpha-beta (negamax) search.
+
+        Parameters
+        ----------
+        time_limit : float | int
+            Requested time budget in milliseconds (or seconds if > 1000). Currently
+            this implementation uses a fixed depth (max_depth) and does not yet
+            implement dynamic time allocation; the parameter is accepted for API
+            compatibility and future iterative deepening/time management integration.
+
+        Returns
+        -------
+        Optional[chess.Move]
+            The selected best move, or None if no legal moves are available.
+
+        Notes
+        -----
+        Future enhancement: Replace fixed-depth search with iterative deepening
+        loop honoring time_limit and integrating aspiration windows plus time
+        management heuristics. This docstring is added now to clarify the
+        contract while that system is under development.
+        """
+        # Backward compatibility: some callers use time_limit (ms)
+        if time_limit_ms is None and time_limit is not None:
+            time_limit_ms = time_limit
+
+        self.nodes = 0
+        self.last_score = None
+        alpha = -30000
+        beta = 30000
+        alpha_orig = alpha
+        max_depth = depth_override if depth_override is not None else self.max_depth
+        self.search_deadline = (time.time() + (time_limit_ms / 1000.0)) if time_limit_ms else None
+
+        # Transposition table probe
+        pos_key = hash(self.board.get_fen())
+        tt_entry = self.tt.lookup(pos_key, max_depth, alpha, beta)
+        tt_move = tt_entry[1] if tt_entry else None
+
+        # Move ordering
+        moves = self.move_generator.get_legal_moves()
+        ordered_moves = self.move_orderer.order_moves(self.board.board, moves, max_depth, tt_move)
+
+        best_move: Optional[chess.Move] = None
+        best_score = -30000
+
+        for move in ordered_moves:
+            if self.uci.stop_requested:
+                break
+            self.board.make_move(move)
+            score = -self._negamax(max_depth - 1, -beta, -alpha)
+            self.board.unmake_move()
+
+            if score > best_score:
+                best_score = score
+                best_move = move
+                self.last_score = best_score
+                alpha = max(alpha, score)
+
+            if alpha >= beta:
+                if not self.board.board.is_capture(move):
+                    self.move_orderer.update_killer_move(move, max_depth)
+                break
+
+        if best_move:
+            node_type = NodeType.EXACT
+            if best_score <= alpha_orig:
+                node_type = NodeType.UPPER
+            elif best_score >= beta:
+                node_type = NodeType.LOWER
+            self.tt.store(pos_key, max_depth, int(best_score), node_type, best_move)
+
+        return best_move
         
-        # Add to game rules manager
-        self.game_rules.reset_game()
-        self.game_rules.add_position(self.board)
-    
-    def make_move(self, move_uci: str):
-        """Make a move in UCI format."""
-        try:
-            move = chess.Move.from_uci(move_uci)
-            if move in self.board.legal_moves:
-                self.board.push(move)
-                self.game_stats['moves_played'] += 1
+    def _negamax(self, depth: int, alpha: int, beta: int) -> int:
+        """Enhanced negamax search with move ordering and transposition table."""
+        self.nodes += 1
+        alpha_orig = alpha
+        
+        # Check transposition table
+        pos_key = hash(self.board.get_fen())
+        tt_entry = self.tt.lookup(pos_key, depth, alpha, beta)
+        if tt_entry:
+            return tt_entry[0]
+            
+        # Time / stop check
+        if self.uci.stop_requested:
+            return 0
+        if self.search_deadline and time.time() > self.search_deadline:
+            self.uci.stop_requested = True
+            return 0
+        if depth == 0:
+            return int(self.evaluator.evaluate(self.board))
+            
+        # Get ordered moves
+        moves = self.move_generator.get_legal_moves()
+        tt_move = tt_entry[1] if tt_entry else None
+        ordered_moves = self.move_orderer.order_moves(
+            self.board.board, moves, depth, tt_move)
+            
+        if not ordered_moves:
+            if self.board.is_check():
+                return -20000  # Checkmate
+            return 0  # Stalemate
+            
+        best_score = -30000  # Instead of float('-inf')
+        best_move = None
+        
+        # Search moves
+        for move in ordered_moves:
+            self.board.make_move(move)
+            score = -self._negamax(depth - 1, -beta, -alpha)
+            self.board.unmake_move()
+            
+            if score > best_score:
+                best_score = score
+                best_move = move
+                alpha = max(alpha, score)
                 
-                # Add position to game rules tracking
-                self.game_rules.add_position(self.board, move)
+            if alpha >= beta:
+                # Store killer move and update history
+                if not self.board.board.is_capture(move):
+                    self.move_orderer.update_killer_move(move, depth)
+                    self.move_orderer.update_history(move, depth)
+                    
+                # Store counter move
+                if self.board.board.move_stack:
+                    last_move = self.board.board.peek()
+                    self.move_orderer.update_counter_move(last_move, move)
+                break
                 
-                self.position_history.append(self.board.fen())
-                self._update_game_stats()
-                return True
-        except:
-            pass
-        return False
-    
-    def get_legal_moves(self) -> List[chess.Move]:
-        """Get all legal moves in current position."""
-        return list(self.board.legal_moves)
-    
-    def is_game_over(self) -> bool:
-        """Check if game is over."""
-        return self.board.is_game_over()
-    
-    def get_result(self) -> Optional[str]:
-        """Get game result if game is over."""
-        if self.board.is_checkmate():
-            return "1-0" if self.board.turn == chess.BLACK else "0-1"
-        elif self.board.is_stalemate() or self.board.is_insufficient_material():
-            return "1/2-1/2"
-        return None
-    
-    def get_game_phase(self) -> str:
-        """Determine current game phase."""
-        piece_count = len(self.board.piece_map())
-        
-        if piece_count >= 28:
-            return "opening"
-        elif piece_count >= 12:
-            return "middlegame"
-        else:
-            return "endgame"
-    
-    def get_material_balance(self) -> int:
-        """Get material balance in centipawns."""
-        piece_values = {
-            chess.PAWN: 100,
-            chess.KNIGHT: 320,
-            chess.BISHOP: 330,
-            chess.ROOK: 500,
-            chess.QUEEN: 900,
-            chess.KING: 0
-        }
-        
-        balance = 0
-        for piece_type in piece_values:
-            white_count = len(self.board.pieces(piece_type, chess.WHITE))
-            black_count = len(self.board.pieces(piece_type, chess.BLACK))
-            balance += (white_count - black_count) * piece_values[piece_type]
-        
-        return balance
-    
-    def is_repetition(self) -> bool:
-        """Check if current position is a repetition."""
-        current_fen = self.board.fen().split(' ')[0]  # Just piece positions
-        count = sum(1 for pos in self.position_history if pos.split(' ')[0] == current_fen)
-        return count >= 3
-    
-    def get_position_info(self) -> Dict[str, Any]:
-        """Get comprehensive position information."""
-        return {
-            'fen': self.board.fen(),
-            'legal_moves': len(list(self.board.legal_moves)),
-            'game_phase': self.get_game_phase(),
-            'material_balance': self.get_material_balance(),
-            'is_check': self.board.is_check(),
-            'is_repetition': self.is_repetition(),
-            'halfmove_clock': self.board.halfmove_clock,
-            'fullmove_number': self.board.fullmove_number,
-            'castling_rights': str(self.board.castling_rights),
-            'game_rules_status': self.game_rules.get_game_status(self.board)
-        }
-    
-    def set_hash_size(self, size_mb: int):
-        """Set hash table size."""
-        self.search_engine.set_hash_size(size_mb)
-    
-    def clear_hash(self):
-        """Clear the hash table."""
-        self.search_engine.clear_hash()
-    
-    def get_hash_stats(self) -> Dict[str, int]:
-        """Get hash table statistics."""
-        return self.search_engine.get_stats()
-    
-    def get_search_stats(self) -> Dict[str, Any]:
-        """Get search statistics."""
-        return self.search_engine.get_stats()
-    
-    def set_contempt(self, contempt: int):
-        """Set contempt factor in centipawns."""
-        self.search_engine.set_contempt(contempt)
-    
-    def search_position(self, depth: int = 6, max_time: int = 5000) -> tuple[int, Optional[chess.Move]]:
-        """Search current position using advanced NegaScout algorithm."""
-        self.search_engine.reset_stats()
-        self.search_engine.max_search_time = max_time
-        return self.search_engine.negascout_search(self.board, depth, -50000, 50000)
-    
-    def _update_game_stats(self):
-        """Update internal game statistics."""
-        self.game_stats['game_phase'] = self.get_game_phase()
-        self.game_stats['material_balance'] = self.get_material_balance()
-        self.game_stats['positions_evaluated'] += 1
+        # Store position in transposition table
+        if best_move:
+            node_type = NodeType.EXACT
+            if best_score <= alpha_orig:
+                node_type = NodeType.UPPER
+            elif best_score >= beta:
+                node_type = NodeType.LOWER
+                
+            self.tt.store(pos_key, depth, int(best_score), node_type, best_move)
+            
+        return best_score
