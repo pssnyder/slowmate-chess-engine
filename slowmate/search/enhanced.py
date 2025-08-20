@@ -83,12 +83,20 @@ class MoveOrderer:
         self.counter_moves: Dict[chess.Move, chess.Move] = {}  # move -> counter
         
     def order_moves(self, board: chess.Board, moves: List[chess.Move], depth: int,
-                   tt_move: Optional[chess.Move] = None) -> List[chess.Move]:
-        """Order moves for optimal search efficiency."""
+                   tt_move: Optional[chess.Move] = None,
+                   use_killer: bool = False,
+                   prioritize_captures: bool = False) -> List[chess.Move]:
+        """Order moves for optimal search efficiency, supporting killer moves and capture prioritization."""
         scored_moves = []
         
         for move in moves:
             score = self._score_move(board, move, depth, tt_move)
+            # Prioritize captures if requested
+            if prioritize_captures and board.is_capture(move):
+                score += 5000
+            # Prioritize killer moves if requested
+            if use_killer and depth in self.killer_moves and move in self.killer_moves[depth]:
+                score += 4000
             scored_moves.append((move, score))
             
         scored_moves.sort(key=lambda x: x[1], reverse=True)
