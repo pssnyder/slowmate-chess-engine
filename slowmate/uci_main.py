@@ -14,7 +14,7 @@ from typing import Optional
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from slowmate.engine import SlowMateEngine
-from slowmate.uci.protocol import UCIProtocol
+from slowmate.uci.protocol_v2_2 import UCIProtocol
 
 
 class UCIMain:
@@ -32,7 +32,7 @@ class UCIMain:
         try:
             self.engine = SlowMateEngine()
             self.uci = UCIProtocol(self.engine)
-            self.uci.debug = self.debug_mode
+            self.uci.debug_mode = self.debug_mode
             return True
         except Exception as e:
             print(f"info string Engine initialization failed: {e}", flush=True)
@@ -59,7 +59,7 @@ class UCIMain:
                         break
                         
                     if self.uci:
-                        self.uci.process_command(command)
+                        self.uci.handle_command(command)
                     
                 except EOFError:
                     # End of input stream
@@ -80,12 +80,12 @@ class UCIMain:
     def _signal_handler(self, signum, frame):
         """Handle system signals for graceful shutdown."""
         self.running = False
-        if self.uci and self.uci.searching:
+        if self.uci:
             self.uci.stop_requested = True
             
     def _cleanup(self):
         """Clean up resources before exit."""
-        if self.uci and self.uci.searching:
+        if self.uci:
             self.uci.stop_requested = True
             # Wait for search thread to finish
             if hasattr(self.uci, 'search_thread') and self.uci.search_thread:

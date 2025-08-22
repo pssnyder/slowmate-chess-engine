@@ -1,67 +1,72 @@
 """
-SlowMate Chess Engine        self.move_orderer = MoveOrderer()
-        self.uci = UCIProtocol(self)
-        self.nodes = 0
-        self.max_depth = 4  # Config            # Time management checks
-        if self.uci.stop_requested:
-            return 0
-        
-        if self.search_deadline:
-            elapsed = time.time() - self.start_time
-            if self.time_manager.should_stop(self.nodes, elapsed):
-                self.uci.stop_requested = True
-                return 0 via UCI option MaxDepth
-        self.search_deadline = None
-        self.last_score = None
-        
-    def new_game(self):Engine Interface
-Version: 1.0.0-BETA
-Based on stable v0.2.01 architecture
+SlowMate Chess Engine v3.0 - Production Release
+Comprehensive fix for evaluation perspective bug and competitive restoration
+Target: Stable 650+ ELO with robust UCI compliance and reliable move generation
 """
 
 import chess
 import time
-from typing import Optional, List, Tuple
+import math
+from typing import Optional, List, Tuple, Dict, Any
 
 from .core.board import Board
 from .core.moves import MoveGenerator
-from .core.evaluate import Evaluator
-from .core.time_manager import TimeManager
-from .core.opening_book import OpeningBook
-from .core.tablebase import Tablebase
+from .core.enhanced_evaluate import EnhancedEvaluator
 from .search.enhanced import TranspositionTable, MoveOrderer, NodeType
-from .uci.protocol import UCIProtocol
+from .uci.protocol_v2_2 import UCIProtocol
 
 
 class SlowMateEngine:
-    """Main chess engine interface with enhanced search capabilities."""
+    """SlowMate v3.0 - Production Release with Critical Bug Fixes."""
     
     def __init__(self):
-        """Initialize the chess engine."""
+        """Initialize the production chess engine."""
         self.board = Board()
         self.move_generator = MoveGenerator(self.board)
-        self.evaluator = Evaluator()
-        self.tt = TranspositionTable()
+        self.evaluator = EnhancedEvaluator()
+        self.tt = TranspositionTable(size_mb=64)
         self.move_orderer = MoveOrderer()
-        self.time_manager = TimeManager()
-        self.opening_book = OpeningBook()
-        self.tablebase = Tablebase()
         self.uci = UCIProtocol(self)
         self.nodes = 0
-        self.max_depth = 4  # Configurable via UCI option MaxDepth
+        self.max_depth = 6
         self.search_deadline = None
         self.last_score = None
-        self.start_time = None  # Track search start time
+        self.start_time = None
+        
+        # v3.0: Advanced search parameters
+        self.aspiration_window = 50
+        self.null_move_reduction = 2
+        self.late_move_reduction_threshold = 4
+        self.quiescence_max_depth = 4
+        
+        # v3.0: History and killer move management
+        self.history_table = {}
+        self.killer_moves = [[] for _ in range(20)]
+        self.counter_moves = {}
+        
+        # v3.0: Time management improvements
+        self.time_scaling_factor = 1.0
+        self.complexity_bonus = 0.0
+        
+    def get_version(self) -> str:
+        """Return engine version."""
+        return "3.0"
         
     def new_game(self):
         """Reset the engine for a new game."""
         self.board = Board()
         self.move_generator = MoveGenerator(self.board)
-        self.tt = TranspositionTable()  # Clear transposition table
-        self.move_orderer = MoveOrderer()  # Reset move ordering
-        self.time_manager.start_new_game()  # Reset time management
+        self.tt = TranspositionTable(size_mb=64)
+        self.move_orderer = MoveOrderer()
+        self.nodes = 0
+        self.last_score = None
         
-    def set_position(self, position):
+        # Clear history tables
+        self.history_table.clear()
+        self.killer_moves = [[] for _ in range(20)]
+        self.counter_moves.clear()
+        
+    def set_position(self, position: str):
         """Set the board position."""
         if position == "startpos":
             self.board = Board()
@@ -69,261 +74,209 @@ class SlowMateEngine:
             self.board.set_fen(position)
         self.move_generator = MoveGenerator(self.board)
         
-    def make_move(self, move):
+    def make_move(self, move: chess.Move):
         """Make a move on the board."""
+        if move not in self.move_generator.get_legal_moves():
+            raise ValueError(f"Illegal move: {move.uci()}")
         self.board.make_move(move)
         
     def search(self, time_limit_ms: Optional[int] = None, depth_override: Optional[int] = None, *,
              wtime: Optional[int] = None, btime: Optional[int] = None,
              winc: Optional[int] = None, binc: Optional[int] = None,
              moves_to_go: Optional[int] = None) -> Optional[chess.Move]:
-        # Endgame tablebase integration
-        fen = self.board.board.fen()
-        tablebase_move = self.tablebase.select_tablebase_move(fen)
-        if tablebase_move:
-            return chess.Move.from_uci(tablebase_move)
-        # Opening book integration
-        book_move = self.opening_book.select_book_move(fen)
-        if book_move:
-            return chess.Move.from_uci(book_move)
-        # Restore dynamic time management
-        is_white = self.board.board.turn
-        self.start_time = time.time()
-        self.time_manager.set_time_controls(wtime, btime, winc, binc, moves_to_go, is_white)
-        allocated_time = self.time_manager.calculate_move_time(
-            self.board.board,
-            len(self.board.board.move_stack)
-        )
-        self.search_deadline = self.start_time + allocated_time
-        try:
-            self.uci._out(f"info string ALLOCATED_TIME {allocated_time:.3f}")
-            self.uci._out("info string START_SEARCH")
-        except Exception:
-            pass
-        """Search for the best move using iterative deepening with time management.
-
-        Parameters
-        ----------
-        time_limit_ms : Optional[int]
-            Optional fixed time limit in milliseconds (deprecated)
-        depth_override : Optional[int]
-            Optional fixed depth limit
-        wtime : Optional[int]
-            White's remaining time in milliseconds
-        btime : Optional[int]
-            Black's remaining time in milliseconds
-        winc : Optional[int]
-            White's increment in milliseconds
-        binc : Optional[int]
-            Black's increment in milliseconds
-        moves_to_go : Optional[int]
-            Number of moves until next time control
-
-        Returns
-        -------
-        Optional[chess.Move]
-            The selected best move, or None if no legal moves are available
+        """
+        Search for the best move using iterative deepening with enhanced time management.
+        
+        Returns:
+            The best move found, or None if no legal moves available
         """
         self.nodes = 0
         self.last_score = None
         self.start_time = time.time()
-
-        # Set up time management and initial depth
-        # Ignore all time controls and force a fixed minimum search time for every move (2 seconds)
-        allocated_time = 2.0
+        self.uci.stop_requested = False
+        
+        # Calculate time allocation
+        allocated_time = self._calculate_time_allocation(
+            wtime, btime, winc, binc, moves_to_go, time_limit_ms
+        )
         self.search_deadline = self.start_time + allocated_time
+        
         try:
-            self.uci._out(f"info string ALLOCATED_TIME {allocated_time:.3f}")
-            self.uci._out("info string START_SEARCH")
+            self.uci._out(f"info string SlowMate v3.0 - Allocated time: {allocated_time:.3f}s")
         except Exception:
             pass
-
-        # Start timing from here
-        self.start_time = time.time()
-
-        # Initialize search parameters
-        alpha = -30000
-        beta = 30000
-        alpha_orig = alpha
-
-        # Set up iterative deepening
-        if depth_override is not None:
-            max_depth = depth_override
-        else:
-            max_depth = self.max_depth
-            if wtime is not None or btime is not None:
-                # Scale depth with time
-                allocated_time = self.time_manager.allocated_time
-                if allocated_time >= 10:
-                    max_depth = max(max_depth, 6)
-                elif allocated_time >= 5:
-                    max_depth = max(max_depth, 5)
-                else:
-                    max_depth = 4
-        
-        best_move: Optional[chess.Move] = None
-        best_score = -30000
         
         # Get legal moves
         moves = self.move_generator.get_legal_moves()
         if not moves:
             return None
             
-        # Set initial best move in case we need to stop early
-        best_move = moves[0]
+        best_move = moves[0]  # Fallback move
+        best_score = -30000
         
-        # Iterative deepening loop
-        for current_depth in range(2, max_depth + 1):
-            self.uci._out("info string ===START ITERATION===")
+        # Determine search depth
+        max_depth = depth_override if depth_override else self.max_depth
+        if allocated_time >= 10:
+            max_depth = max(max_depth, 8)
+        elif allocated_time >= 5:
+            max_depth = max(max_depth, 7)
+        
+        # Iterative deepening search
+        for current_depth in range(1, max_depth + 1):
+            if self.uci.stop_requested:
+                break
+                
             alpha = -30000
             beta = 30000
-            iteration_start = time.time()
-            pos_key = hash(self.board.get_fen())
-            tt_entry = self.tt.lookup(pos_key, current_depth, alpha, beta)
-            tt_move = tt_entry[1] if tt_entry else None
-            # Improved move ordering
-            ordered_moves = self.move_orderer.order_moves(
-                self.board.board,
-                moves,
-                current_depth,
-                tt_move,
-                use_killer=True,
-                prioritize_captures=True
+            
+            # Aspiration windows for deeper searches
+            if current_depth >= 4 and self.last_score is not None:
+                alpha = self.last_score - self.aspiration_window
+                beta = self.last_score + self.aspiration_window
+            
+            iteration_best_move, iteration_best_score = self._search_depth(
+                current_depth, alpha, beta, moves
             )
-            stable_iteration = True
-            iteration_best_move = None
-            iteration_best_score = -30000
-            for move in ordered_moves:
-                if self.uci.stop_requested:
-                    break
-                # Null move pruning: skip obviously bad moves if current_depth > 2
-                if current_depth > 2 and not self.board.board.is_capture(move):
-                    self.board.make_move(move)
-                    null_score = -self._negamax(current_depth - 2, -beta, -alpha)
-                    self.board.unmake_move()
-                    if null_score >= beta:
-                        continue
-                # Validate move before making
-                if move not in self.move_generator.get_legal_moves():
-                    self.uci._out(f"info string ILLEGAL MOVE DETECTED: {move.uci()}")
-                    continue
-                self.board.make_move(move)
-                score = -self._negamax(current_depth - 1, -beta, -alpha)
-                self.board.unmake_move()
-                
-                elapsed = time.time() - self.start_time
-                if elapsed >= self.time_manager.allocated_time * 1.2:
-                    self.uci.stop_requested = True
-                    break
-                
-                if score > iteration_best_score:
-                    iteration_best_score = score
-                    iteration_best_move = move
-                    stable_iteration = (move == best_move)
-                    alpha = max(alpha, score)
-                
-                if alpha >= beta:
-                    if not self.board.board.is_capture(move):
-                        self.move_orderer.update_killer_move(move, current_depth)
-                    break
-                
-            # Update best move if this iteration completed
+            
+            # Handle aspiration window failures
+            if (iteration_best_score <= alpha or iteration_best_score >= beta) and current_depth >= 4:
+                # Widen window and re-search
+                alpha = -30000
+                beta = 30000
+                iteration_best_move, iteration_best_score = self._search_depth(
+                    current_depth, alpha, beta, moves
+                )
+            
+            # Update best move if iteration completed
             if not self.uci.stop_requested and iteration_best_move:
                 best_move = iteration_best_move
                 best_score = iteration_best_score
                 self.last_score = best_score
                 
-                # Store in transposition table and log progress
-                node_type = NodeType.EXACT
-                if best_score <= alpha_orig:
-                    node_type = NodeType.UPPER
-                elif best_score >= beta:
-                    node_type = NodeType.LOWER
-                self.tt.store(pos_key, current_depth, int(best_score), node_type, best_move)
-                
-                    # Log detailed iteration stats
-                total_time = time.time() - self.start_time
-                self.uci._out(
-                    f"info string >>>STATS<<<\n"
-                    f"info string Depth: {current_depth}\n"
-                    f"info string Score: {best_score}\n"
-                    f"info string Total time: {total_time:.3f}s\n"
-                    f"info string Allocated time: {self.time_manager.allocated_time:.3f}s\n"
-                    f"info string Move: {best_move.uci()}\n"
-                    f"info string <<<STATS>>>"
-                )
+                try:
+                    elapsed = time.time() - self.start_time
+                    nps = int(self.nodes / max(elapsed, 0.001))
+                    self.uci._out(
+                        f"info depth {current_depth} score cp {best_score} "
+                        f"nodes {self.nodes} nps {nps} time {int(elapsed * 1000)} "
+                        f"pv {best_move.uci()}"
+                    )
+                except Exception:
+                    pass
             
-            # Check time management
+            # Time management: check if we should continue
             elapsed = time.time() - self.start_time
+            if elapsed >= allocated_time * 0.8:  # Use 80% of allocated time
+                break
+                
+        return best_move
+    
+    def _calculate_time_allocation(self, wtime: Optional[int], btime: Optional[int],
+                                 winc: Optional[int], binc: Optional[int],
+                                 moves_to_go: Optional[int], 
+                                 time_limit_ms: Optional[int]) -> float:
+        """Calculate optimal time allocation for the current move."""
+        if time_limit_ms:
+            return time_limit_ms / 1000.0
+            
+        # Default allocation if no time controls provided
+        if not wtime and not btime:
+            return 2.0
+            
+        # Get our remaining time and increment
+        our_time = wtime if self.board.board.turn == chess.WHITE else btime
+        our_inc = winc if self.board.board.turn == chess.WHITE else binc
+        
+        if not our_time:
+            return 2.0
+            
+        our_time /= 1000.0  # Convert to seconds
+        our_inc = (our_inc or 0) / 1000.0
+        
+        # Estimate moves remaining
+        game_length = len(self.board.board.move_stack)
+        estimated_moves_remaining = max(40 - game_length // 2, 15)
+        
+        if moves_to_go:
+            estimated_moves_remaining = min(estimated_moves_remaining, moves_to_go)
+        
+        # Basic time allocation: divide remaining time by estimated moves
+        base_time = our_time / estimated_moves_remaining + our_inc * 0.8
+        
+        # Complexity adjustments
+        position_complexity = self._evaluate_position_complexity()
+        if position_complexity > 0.7:
+            base_time *= 1.5  # Spend more time on complex positions
+        elif position_complexity < 0.3:
+            base_time *= 0.8  # Spend less time on simple positions
+            
+        # Ensure minimum and maximum bounds
+        base_time = max(0.1, min(base_time, our_time * 0.1))
+        
+        return base_time
+    
+    def _evaluate_position_complexity(self) -> float:
+        """Evaluate the complexity of the current position (0.0 to 1.0)."""
+        board = self.board.board
+        complexity = 0.0
+        
+        # Material on board
+        total_material = sum(len(board.pieces(piece_type, color)) 
+                           for piece_type in chess.PIECE_TYPES 
+                           for color in chess.COLORS)
+        complexity += min(total_material / 32.0, 1.0) * 0.3
+        
+        # Number of legal moves
+        legal_moves = len(list(board.legal_moves))
+        complexity += min(legal_moves / 40.0, 1.0) * 0.4
+        
+        # Checks and tactics
+        if board.is_check():
+            complexity += 0.2
+        if any(board.is_capture(move) for move in board.legal_moves):
+            complexity += 0.1
+            
+        return min(complexity, 1.0)
+    
+    def _search_depth(self, depth: int, alpha: int, beta: int, 
+                     moves: List[chess.Move]) -> Tuple[Optional[chess.Move], int]:
+        """Search all moves at a given depth."""
+        best_move = None
+        best_score = -30000
+        
+        # Order moves for better alpha-beta pruning
+        pos_key = hash(self.board.get_fen())
+        tt_entry = self.tt.lookup(pos_key, depth, alpha, beta)
+        tt_move = tt_entry[1] if tt_entry else None
+        
+        ordered_moves = self.move_orderer.order_moves(
+            self.board.board, moves, depth, tt_move,
+            use_killer=True, prioritize_captures=True
+        )
+        
+        for i, move in enumerate(ordered_moves):
             if self.uci.stop_requested:
                 break
                 
-            # Minimum search time based on allocated time
-            if self.time_manager.allocated_time > 0:
-                min_time = min(1.0, self.time_manager.allocated_time * 0.2)
-                if elapsed < min_time:
-                    continue  # Force minimum search time
-                    
-            # Check if we should continue or stop
-            allocated = self.time_manager.allocated_time
-            if allocated > 0 and elapsed >= allocated:
-                if stable_iteration or current_depth >= 5:
-                    self.uci._out(f"info string Stopping search: stable={stable_iteration}, depth={current_depth}")
-                    break
-        
-        # Wait until allocated search time has elapsed
-        while time.time() - self.start_time < allocated_time:
-            time.sleep(0.01)
-        # Final timing report
-        total_time = time.time() - self.start_time
-        self.uci._out(
-            f"info string >>>FINAL STATS<<<\n"
-            f"info string Total time: {total_time:.3f}s\n"
-            f"info string Allocated time: {allocated_time:.3f}s\n"
-            f"info string Last depth: {current_depth}\n"
-            f"info string Nodes: {self.nodes}\n"
-            f"info string <<<FINAL STATS>>>"
-        )
-        return best_move
-        
-    def _negamax(self, depth: int, alpha: int, beta: int) -> int:
-        """Enhanced negamax search with move ordering and transposition table."""
-        self.nodes += 1
-        alpha_orig = alpha
-        
-        # Check transposition table
-        pos_key = hash(self.board.get_fen())
-        tt_entry = self.tt.lookup(pos_key, depth, alpha, beta)
-        if tt_entry:
-            return tt_entry[0]
-            
-        # Time / stop check
-        if self.uci.stop_requested:
-            return 0
-        if self.search_deadline and time.time() > self.search_deadline:
-            self.uci.stop_requested = True
-            return 0
-        if depth == 0:
-            return int(self.evaluator.evaluate(self.board))
-            
-        # Get ordered moves
-        moves = self.move_generator.get_legal_moves()
-        tt_move = tt_entry[1] if tt_entry else None
-        ordered_moves = self.move_orderer.order_moves(
-            self.board.board, moves, depth, tt_move)
-            
-        if not ordered_moves:
-            if self.board.is_check():
-                return -20000  # Checkmate
-            return 0  # Stalemate
-            
-        best_score = -30000  # Instead of float('-inf')
-        best_move = None
-        
-        # Search moves
-        for move in ordered_moves:
+            # Validate move legality
+            if move not in moves:
+                continue
+                
             self.board.make_move(move)
-            score = -self._negamax(depth - 1, -beta, -alpha)
+            
+            # Late move reduction for non-critical moves
+            reduction = 0
+            if (depth >= 3 and i >= self.late_move_reduction_threshold 
+                and not self.board.board.is_check() 
+                and not self.board.board.is_capture(move)):
+                reduction = 1
+            
+            score = -self._negamax(depth - 1 - reduction, -beta, -alpha)
+            
+            # Re-search if reduction failed high
+            if reduction > 0 and score > alpha:
+                score = -self._negamax(depth - 1, -beta, -alpha)
+            
             self.board.unmake_move()
             
             if score > best_score:
@@ -332,25 +285,200 @@ class SlowMateEngine:
                 alpha = max(alpha, score)
                 
             if alpha >= beta:
-                # Store killer move and update history
+                # Update killer moves and history
                 if not self.board.board.is_capture(move):
-                    self.move_orderer.update_killer_move(move, depth)
-                    self.move_orderer.update_history(move, depth)
-                    
-                # Store counter move
-                if self.board.board.move_stack:
-                    last_move = self.board.board.peek()
-                    self.move_orderer.update_counter_move(last_move, move)
+                    self._update_killer_move(move, depth)
+                    self._update_history(move, depth)
                 break
                 
-        # Store position in transposition table
+        # Store in transposition table
         if best_move:
             node_type = NodeType.EXACT
-            if best_score <= alpha_orig:
+            if best_score <= alpha:
                 node_type = NodeType.UPPER
             elif best_score >= beta:
                 node_type = NodeType.LOWER
+            self.tt.store(pos_key, depth, best_score, node_type, best_move)
+            
+        return best_move, best_score
+    
+    def _negamax(self, depth: int, alpha: int, beta: int) -> int:
+        """Enhanced negamax search with pruning and extensions."""
+        self.nodes += 1
+        
+        # Time management check
+        if self.uci.stop_requested:
+            return 0
+        if self.search_deadline and time.time() > self.search_deadline:
+            self.uci.stop_requested = True
+            return 0
+            
+        # Transposition table lookup
+        pos_key = hash(self.board.get_fen())
+        tt_entry = self.tt.lookup(pos_key, depth, alpha, beta)
+        if tt_entry:
+            return tt_entry[0]
+            
+        # Quiescence search at leaf nodes
+        if depth <= 0:
+            return self._quiescence_search(alpha, beta, self.quiescence_max_depth)
+            
+        # Null move pruning
+        if (depth >= 3 and not self.board.board.is_check() 
+            and self._has_non_pawn_material()):
+            self.board.board.push(chess.Move.null())
+            null_score = -self._negamax(depth - 1 - self.null_move_reduction, -beta, -alpha)
+            self.board.board.pop()
+            
+            if null_score >= beta:
+                return beta
+        
+        # Get and order moves
+        moves = self.move_generator.get_legal_moves()
+        if not moves:
+            if self.board.board.is_check():
+                return -20000 + self.nodes  # Checkmate (prefer shorter mates)
+            return 0  # Stalemate
+            
+        tt_move = tt_entry[1] if tt_entry else None
+        ordered_moves = self.move_orderer.order_moves(
+            self.board.board, moves, depth, tt_move
+        )
+        
+        best_score = -30000
+        best_move = None
+        
+        for i, move in enumerate(ordered_moves):
+            if self.uci.stop_requested:
+                break
                 
-            self.tt.store(pos_key, depth, int(best_score), node_type, best_move)
+            # Check extension
+            extension = 0
+            if self.board.board.is_check():
+                extension = 1
+                
+            self.board.make_move(move)
+            score = -self._negamax(depth - 1 + extension, -beta, -alpha)
+            self.board.unmake_move()
+            
+            if score > best_score:
+                best_score = score
+                best_move = move
+                alpha = max(alpha, score)
+                
+            if alpha >= beta:
+                # Update move ordering data
+                if not self.board.board.is_capture(move):
+                    self._update_killer_move(move, depth)
+                    self._update_history(move, depth)
+                break
+                
+        # Store in transposition table
+        if best_move:
+            node_type = NodeType.EXACT
+            if best_score <= alpha:
+                node_type = NodeType.UPPER
+            elif best_score >= beta:
+                node_type = NodeType.LOWER
+            self.tt.store(pos_key, depth, best_score, node_type, best_move)
             
         return best_score
+    
+    def _quiescence_search(self, alpha: int, beta: int, depth: int) -> int:
+        """Quiescence search to avoid horizon effect."""
+        self.nodes += 1
+        
+        # Evaluate current position
+        stand_pat = int(self.evaluator.evaluate(self.board))
+        
+        if depth <= 0 or stand_pat >= beta:
+            return stand_pat
+            
+        alpha = max(alpha, stand_pat)
+        
+        # Only consider captures in quiescence
+        moves = [move for move in self.move_generator.get_legal_moves() 
+                if self.board.board.is_capture(move)]
+        
+        if not moves:
+            return stand_pat
+            
+        # Order captures by SEE (Static Exchange Evaluation)
+        moves.sort(key=lambda m: self._see_capture_value(m), reverse=True)
+        
+        for move in moves:
+            if self.uci.stop_requested:
+                break
+                
+            # Delta pruning: skip captures that can't improve alpha
+            capture_value = self._see_capture_value(move)
+            if stand_pat + capture_value + 200 < alpha:  # 200cp margin
+                continue
+                
+            self.board.make_move(move)
+            score = -self._quiescence_search(-beta, -alpha, depth - 1)
+            self.board.unmake_move()
+            
+            if score >= beta:
+                return beta
+            alpha = max(alpha, score)
+            
+        return alpha
+    
+    def _see_capture_value(self, move: chess.Move) -> int:
+        """Static Exchange Evaluation for captures."""
+        board = self.board.board
+        if not board.is_capture(move):
+            return 0
+            
+        captured_piece = board.piece_at(move.to_square)
+        if not captured_piece:
+            return 0
+            
+        return self.evaluator.piece_values.get(captured_piece.piece_type, 0)
+    
+    def _has_non_pawn_material(self) -> bool:
+        """Check if current side has non-pawn material."""
+        board = self.board.board
+        our_color = board.turn
+        
+        for piece_type in [chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN]:
+            if board.pieces(piece_type, our_color):
+                return True
+        return False
+    
+    def _update_killer_move(self, move: chess.Move, depth: int):
+        """Update killer move table."""
+        if depth < len(self.killer_moves):
+            killers = self.killer_moves[depth]
+            if move not in killers:
+                killers.insert(0, move)
+                if len(killers) > 2:  # Keep only 2 killer moves per depth
+                    killers.pop()
+    
+    def _update_history(self, move: chess.Move, depth: int):
+        """Update history heuristic."""
+        key = (move.from_square, move.to_square)
+        if key not in self.history_table:
+            self.history_table[key] = 0
+        self.history_table[key] += depth * depth  # Depth squared bonus
+    
+    def get_best_move(self) -> Optional[chess.Move]:
+        """Get the best move from the last search."""
+        return self.search()
+    
+    def get_evaluation(self) -> Optional[int]:
+        """Get the evaluation from the last search."""
+        return self.last_score
+    
+    def get_info(self) -> Dict[str, Any]:
+        """Get engine information."""
+        return {
+            'name': 'SlowMate',
+            'version': '3.0',
+            'author': 'SlowMate Team',
+            'nodes': self.nodes,
+            'evaluation': self.last_score,
+            'tt_size': self.tt.size,
+            'tt_entries': len(self.tt.table)
+        }
