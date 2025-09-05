@@ -17,7 +17,7 @@ class UCIProtocol:
         self.engine = engine
         self.debug = False
         self.name = "SlowMate Chess Engine v2.1-CRITICAL-FIX"
-        self.author = "Pat Snyder"
+        self.author = "Github Copilot"
         self.version = "2.1.0"
         self.searching = False
         self.stop_requested = False

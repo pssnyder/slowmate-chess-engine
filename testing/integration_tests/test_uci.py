@@ -34,7 +34,7 @@ class TestUCIProtocol(unittest.TestCase):
             
         output_text = output.getvalue()
         self.assertIn("id name SlowMate", output_text)
-        self.assertIn("id author Pat Snyder", output_text)
+        self.assertIn("id author Github Copilot", output_text)
         self.assertIn("uciok", output_text)
         
     def test_isready_command(self):

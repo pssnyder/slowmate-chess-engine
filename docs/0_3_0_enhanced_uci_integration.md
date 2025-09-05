@@ -84,7 +84,7 @@ Move Selection: Return best move with complete analysis
 
 ### ✅ UCI Compliance Test
 ```
-uci → id name SlowMate, id author Pat Snyder, uciok
+uci → id name SlowMate, id author Github Copilot, uciok
 isready → readyok
 ```
 

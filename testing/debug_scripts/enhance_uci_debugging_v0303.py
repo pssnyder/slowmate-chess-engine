@@ -527,10 +527,10 @@ def update_uci_main_loop():
     # Find and replace the uci command handler
     if '"uci"' in content:
         # Replace standard UCI response with enhanced version
-        old_uci = 'print("id name SlowMate")\n        print("id author Pat Snyder")\n        print("option name Debug type check default false")\n        print("option name Threads type spin default 1 min 1 max 1")\n        print("option name Hash type spin default 16 min 1 max 128")\n        print("option name Move Overhead type spin default 50 min 0 max 5000")\n        print("uciok")'
+        old_uci = 'print("id name SlowMate")\n        print("id author Github Copilot")\n        print("option name Debug type check default false")\n        print("option name Threads type spin default 1 min 1 max 1")\n        print("option name Hash type spin default 16 min 1 max 128")\n        print("option name Move Overhead type spin default 50 min 0 max 5000")\n        print("uciok")'
         
         new_uci = '''print("id name SlowMate")
-        print("id author Pat Snyder")
+        print("id author Github Copilot")
         send_enhanced_uci_options(None)  # Send all enhanced options
         print("uciok")'''
         
