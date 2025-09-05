@@ -32,6 +32,7 @@ class SlowMateEngine:
         self.search_deadline = None
         self.last_score = None
         self.start_time = None
+        self.current_pv = []  # Principal variation line
         
         # v3.0: Advanced search parameters
         self.aspiration_window = 50
@@ -134,7 +135,7 @@ class SlowMateEngine:
                 alpha = self.last_score - self.aspiration_window
                 beta = self.last_score + self.aspiration_window
             
-            iteration_best_move, iteration_best_score = self._search_depth(
+            iteration_best_move, iteration_best_score, iteration_pv = self._search_depth_with_pv(
                 current_depth, alpha, beta, moves
             )
             
@@ -143,7 +144,7 @@ class SlowMateEngine:
                 # Widen window and re-search
                 alpha = -30000
                 beta = 30000
-                iteration_best_move, iteration_best_score = self._search_depth(
+                iteration_best_move, iteration_best_score, iteration_pv = self._search_depth_with_pv(
                     current_depth, alpha, beta, moves
                 )
             
@@ -151,15 +152,17 @@ class SlowMateEngine:
             if not self.uci.stop_requested and iteration_best_move:
                 best_move = iteration_best_move
                 best_score = iteration_best_score
+                self.current_pv = iteration_pv
                 self.last_score = best_score
                 
                 try:
                     elapsed = time.time() - self.start_time
                     nps = int(self.nodes / max(elapsed, 0.001))
+                    pv_string = " ".join([move.uci() for move in self.current_pv])
                     self.uci._out(
                         f"info depth {current_depth} score cp {best_score} "
                         f"nodes {self.nodes} nps {nps} time {int(elapsed * 1000)} "
-                        f"pv {best_move.uci()}"
+                        f"pv {pv_string}"
                     )
                 except Exception:
                     pass
@@ -238,6 +241,74 @@ class SlowMateEngine:
             
         return min(complexity, 1.0)
     
+    def _search_depth_with_pv(self, depth: int, alpha: int, beta: int, 
+                             moves: List[chess.Move]) -> Tuple[Optional[chess.Move], int, List[chess.Move]]:
+        """Search all moves at a given depth and collect principal variation."""
+        best_move = None
+        best_score = -30000
+        best_pv = []
+        
+        # Order moves for better alpha-beta pruning
+        pos_key = hash(self.board.get_fen())
+        tt_entry = self.tt.lookup(pos_key, depth, alpha, beta)
+        tt_move = tt_entry[1] if tt_entry else None
+        
+        ordered_moves = self.move_orderer.order_moves(
+            self.board.board, moves, depth, tt_move,
+            use_killer=True, prioritize_captures=True
+        )
+        
+        for i, move in enumerate(ordered_moves):
+            if self.uci.stop_requested:
+                break
+                
+            # Validate move legality
+            if move not in moves:
+                continue
+                
+            self.board.make_move(move)
+            
+            # Late move reduction for non-critical moves
+            reduction = 0
+            if (depth >= 3 and i >= self.late_move_reduction_threshold 
+                and not self.board.board.is_check() 
+                and not self.board.board.is_capture(move)):
+                reduction = 1
+            
+            score, child_pv = self._negamax_with_pv(depth - 1 - reduction, -beta, -alpha)
+            score = -score
+            
+            # Re-search if reduction failed high
+            if reduction > 0 and score > alpha:
+                score, child_pv = self._negamax_with_pv(depth - 1, -beta, -alpha)
+                score = -score
+            
+            self.board.unmake_move()
+            
+            if score > best_score:
+                best_score = score
+                best_move = move
+                best_pv = [move] + child_pv
+                alpha = max(alpha, score)
+                
+            if alpha >= beta:
+                # Update killer moves and history
+                if not self.board.board.is_capture(move):
+                    self._update_killer_move(move, depth)
+                    self._update_history(move, depth)
+                break
+                
+        # Store in transposition table
+        if best_move:
+            node_type = NodeType.EXACT
+            if best_score <= alpha:
+                node_type = NodeType.UPPER
+            elif best_score >= beta:
+                node_type = NodeType.LOWER
+            self.tt.store(pos_key, depth, best_score, node_type, best_move)
+            
+        return best_move, best_score, best_pv
+
     def _search_depth(self, depth: int, alpha: int, beta: int, 
                      moves: List[chess.Move]) -> Tuple[Optional[chess.Move], int]:
         """Search all moves at a given depth."""
@@ -302,6 +373,92 @@ class SlowMateEngine:
             
         return best_move, best_score
     
+    def _negamax_with_pv(self, depth: int, alpha: int, beta: int) -> Tuple[int, List[chess.Move]]:
+        """Enhanced negamax search with principal variation collection."""
+        self.nodes += 1
+        
+        # Time management check
+        if self.uci.stop_requested:
+            return 0, []
+        if self.search_deadline and time.time() > self.search_deadline:
+            self.uci.stop_requested = True
+            return 0, []
+            
+        # Transposition table lookup
+        pos_key = hash(self.board.get_fen())
+        tt_entry = self.tt.lookup(pos_key, depth, alpha, beta)
+        if tt_entry:
+            return tt_entry[0], []
+            
+        # Quiescence search at leaf nodes
+        if depth <= 0:
+            return self._quiescence_search(alpha, beta, self.quiescence_max_depth), []
+            
+        # Null move pruning
+        if (depth >= 3 and not self.board.board.is_check() 
+            and self._has_non_pawn_material()):
+            self.board.board.push(chess.Move.null())
+            null_score, _ = self._negamax_with_pv(depth - 1 - self.null_move_reduction, -beta, -alpha)
+            null_score = -null_score
+            self.board.board.pop()
+            
+            if null_score >= beta:
+                return beta, []
+        
+        # Get and order moves
+        moves = self.move_generator.get_legal_moves()
+        if not moves:
+            if self.board.board.is_check():
+                return -20000 + self.nodes, []  # Checkmate (prefer shorter mates)
+            return 0, []  # Stalemate
+            
+        tt_move = tt_entry[1] if tt_entry else None
+        ordered_moves = self.move_orderer.order_moves(
+            self.board.board, moves, depth, tt_move
+        )
+        
+        best_score = -30000
+        best_move = None
+        best_pv = []
+        
+        for i, move in enumerate(ordered_moves):
+            if self.uci.stop_requested:
+                break
+                
+            # Check extension
+            extension = 0
+            if self.board.board.is_check():
+                extension = 1
+                
+            self.board.make_move(move)
+            score, child_pv = self._negamax_with_pv(depth - 1 + extension, -beta, -alpha)
+            score = -score
+            self.board.unmake_move()
+            
+            if score > best_score:
+                best_score = score
+                best_move = move
+                best_pv = [move] + child_pv
+                alpha = max(alpha, score)
+                
+            if alpha >= beta:
+                # Update move ordering data
+                if not self.board.board.is_capture(move):
+                    self._update_killer_move(move, depth)
+                    self._update_history(move, depth)
+                break
+                
+        # Store in transposition table
+        if best_move:
+            node_type = NodeType.EXACT
+            if best_score <= alpha:
+                node_type = NodeType.UPPER
+            elif best_score >= beta:
+                node_type = NodeType.LOWER
+            self.tt.store(pos_key, depth, best_score, node_type, best_move)
+            
+        return best_score, best_pv
+
     def _negamax(self, depth: int, alpha: int, beta: int) -> int:
         """Enhanced negamax search with pruning and extensions."""
         self.nodes += 1
